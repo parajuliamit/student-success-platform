@@ -26,8 +26,6 @@ export interface AuthCredentials {
 
 const AUTH_STORAGE_KEY = 'student-success-platform.auth'
 
-const DEFAULT_PRODUCTION_API_BASE_URL = 'https://mscproject.tuckersmile.com'
-
 function normalizeApiBaseUrl(value: string) {
   return value.replace(/\/+$/, '')
 }
@@ -39,21 +37,7 @@ function resolveApiBaseUrl() {
     return normalizeApiBaseUrl(configuredUrl.trim())
   }
 
-  if (typeof window === 'undefined') {
-    return '/api'
-  }
-
-  const { hostname } = window.location
-  const isLocalHost =
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '0.0.0.0'
-
-  if (isLocalHost) {
-    return '/api'
-  }
-
-  return DEFAULT_PRODUCTION_API_BASE_URL
+  return '/api'
 }
 
 export const API_BASE_URL =
