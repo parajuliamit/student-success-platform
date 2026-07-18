@@ -10,14 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudentsRouteImport } from './routes/students'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ClassesRouteImport } from './routes/classes'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
@@ -28,16 +25,6 @@ import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
 const StudentsRoute = StudentsRouteImport.update({
   id: '/students',
   path: '/students',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -63,11 +50,6 @@ const DashboardRoute = DashboardRouteImport.update({
 const ClassesRoute = ClassesRouteImport.update({
   id: '/classes',
   path: '/classes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -104,14 +86,11 @@ const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
   '/classes': typeof ClassesRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
   '/profile': typeof ProfileRoute
-  '/reports': typeof ReportsRoute
-  '/settings': typeof SettingsRoute
   '/students': typeof StudentsRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -121,14 +100,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
   '/classes': typeof ClassesRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
   '/profile': typeof ProfileRoute
-  '/reports': typeof ReportsRoute
-  '/settings': typeof SettingsRoute
   '/students': typeof StudentsRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -139,14 +115,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/analytics': typeof AnalyticsRoute
   '/classes': typeof ClassesRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
   '/profile': typeof ProfileRoute
-  '/reports': typeof ReportsRoute
-  '/settings': typeof SettingsRoute
   '/students': typeof StudentsRoute
   '/demo/table': typeof DemoTableRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -158,14 +131,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/analytics'
     | '/classes'
     | '/dashboard'
     | '/login'
     | '/predictions'
     | '/profile'
-    | '/reports'
-    | '/settings'
     | '/students'
     | '/demo/table'
     | '/demo/tanstack-query'
@@ -175,14 +145,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/analytics'
     | '/classes'
     | '/dashboard'
     | '/login'
     | '/predictions'
     | '/profile'
-    | '/reports'
-    | '/settings'
     | '/students'
     | '/demo/table'
     | '/demo/tanstack-query'
@@ -192,14 +159,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/analytics'
     | '/classes'
     | '/dashboard'
     | '/login'
     | '/predictions'
     | '/profile'
-    | '/reports'
-    | '/settings'
     | '/students'
     | '/demo/table'
     | '/demo/tanstack-query'
@@ -210,14 +174,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AnalyticsRoute: typeof AnalyticsRoute
   ClassesRoute: typeof ClassesRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   PredictionsRoute: typeof PredictionsRoute
   ProfileRoute: typeof ProfileRoute
-  ReportsRoute: typeof ReportsRoute
-  SettingsRoute: typeof SettingsRoute
   StudentsRoute: typeof StudentsRoute
   DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
@@ -232,20 +193,6 @@ declare module '@tanstack/react-router' {
       path: '/students'
       fullPath: '/students'
       preLoaderRoute: typeof StudentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -281,13 +228,6 @@ declare module '@tanstack/react-router' {
       path: '/classes'
       fullPath: '/classes'
       preLoaderRoute: typeof ClassesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -338,14 +278,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AnalyticsRoute: AnalyticsRoute,
   ClassesRoute: ClassesRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   PredictionsRoute: PredictionsRoute,
   ProfileRoute: ProfileRoute,
-  ReportsRoute: ReportsRoute,
-  SettingsRoute: SettingsRoute,
   StudentsRoute: StudentsRoute,
   DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,

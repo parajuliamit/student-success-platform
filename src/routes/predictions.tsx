@@ -1,74 +1,187 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Brain, ShieldAlert, Sparkles } from 'lucide-react'
-import { DashboardLayout } from '#/components/layout/dashboard-layout'
-import { Badge } from '#/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card'
-import { dashboardOverview } from '#/features/dashboard/mock-data'
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { ArrowUpDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { DashboardLayout } from "#/components/layout/dashboard-layout";
+import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "#/components/ui/table";
+import { useAuth } from "#/features/auth/auth-provider";
+import { buildLiveStudentSummaries } from "#/features/students/student-insights";
+import {
+	fetchRiskCalculations,
+	fetchStudents,
+} from "#/features/students/students-api";
 
-export const Route = createFileRoute('/predictions')({
-  component: PredictionsPage,
-})
+export const Route = createFileRoute("/predictions")({
+	component: PredictionsPage,
+});
 
 function PredictionsPage() {
-  const highPriorityStudents = dashboardOverview.students
-    .filter((student) => student.riskLevel !== 'low')
-    .sort((first, second) => first.predictedScore - second.predictedScore)
-    .slice(0, 5)
+	const { token } = useAuth();
+	const [sortKey, setSortKey] = useState<
+		"name" | "course" | "attendance" | "risk"
+	>("risk");
+	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  return (
-    <DashboardLayout
-      title="Predictions"
-      description="Forecast risk, recovery, and likely intervention outcomes using model outputs."
-    >
-      <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <Card className="rounded-xl border-border/70 bg-card/90 shadow-sm">
-          <CardHeader>
-            <CardTitle>Predictive Signals</CardTitle>
-            <CardDescription>
-              This section is ready for future model integration and score explanation layers.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-border/60 bg-muted/25 p-4">
-              <Brain className="size-5 text-primary" />
-              <p className="mt-2 font-medium">Student risk scoring</p>
-            </div>
-            <div className="rounded-xl border border-border/60 bg-muted/25 p-4">
-              <ShieldAlert className="size-5 text-primary" />
-              <p className="mt-2 font-medium">Intervention prioritization</p>
-            </div>
-            <div className="rounded-xl border border-border/60 bg-muted/25 p-4">
-              <Sparkles className="size-5 text-primary" />
-              <p className="mt-2 font-medium">Explainable AI insights</p>
-            </div>
-          </CardContent>
-        </Card>
+	const studentsQuery = useQuery({
+		queryKey: ["students", token],
+		queryFn: () => fetchStudents(token ?? ""),
+		enabled: Boolean(token),
+	});
 
-        <Card className="rounded-xl border-border/70 bg-card/90 shadow-sm">
-          <CardHeader>
-            <CardTitle>High Priority Forecasts</CardTitle>
-            <CardDescription>Students most likely to need intervention next.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {highPriorityStudents.map((student) => (
-              <div
-                key={student.id}
-                className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/20 p-3"
-              >
-                <div>
-                  <p className="font-medium">{student.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {student.className} · attendance {student.attendance}% · predicted {student.predictedScore}%
-                  </p>
-                </div>
-                <Badge variant={student.riskLevel === 'high' ? 'destructive' : 'secondary'}>
-                  {student.riskLevel} risk
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    </DashboardLayout>
-  )
+	const riskQuery = useQuery({
+		queryKey: ["risk-calculations", token],
+		queryFn: () => fetchRiskCalculations(token ?? ""),
+		enabled: Boolean(token),
+	});
+
+	const prioritizedStudents = useMemo(
+		() =>
+			buildLiveStudentSummaries(
+				studentsQuery.data?.students ?? [],
+				riskQuery.data?.risk_calculations ?? [],
+			).sort((first, second) => {
+				if (sortKey === "name") {
+					return sortDirection === "asc"
+						? first.name.localeCompare(second.name)
+						: second.name.localeCompare(first.name);
+				}
+
+				if (sortKey === "course") {
+					return sortDirection === "asc"
+						? first.course.localeCompare(second.course)
+						: second.course.localeCompare(first.course);
+				}
+
+				if (sortKey === "attendance") {
+					return sortDirection === "asc"
+						? first.attendance - second.attendance
+						: second.attendance - first.attendance;
+				}
+
+				return sortDirection === "asc"
+					? first.riskPercentage - second.riskPercentage
+					: second.riskPercentage - first.riskPercentage;
+			}),
+		[
+			riskQuery.data?.risk_calculations,
+			sortDirection,
+			sortKey,
+			studentsQuery.data?.students,
+		],
+	);
+
+	const toggleSort = (key: "name" | "course" | "attendance" | "risk") => {
+		if (sortKey === key) {
+			setSortDirection((currentDirection) =>
+				currentDirection === "asc" ? "desc" : "asc",
+			);
+			return;
+		}
+
+		setSortKey(key);
+		setSortDirection(key === "risk" ? "desc" : "asc");
+	};
+
+	return (
+		<DashboardLayout
+			title="Predictions"
+			description="Forecast risk and likely intervention outcomes using the live backend risk scores."
+		>
+			<div className="rounded-xl border border-border/70 bg-card/90 p-4 shadow-sm">
+				<div className="mb-4 flex items-start justify-between gap-3">
+					<div>
+						<h2 className="text-base font-semibold text-foreground">
+							Risk Forecast Table
+						</h2>
+						<p className="mt-1 text-sm text-muted-foreground">
+							Sortable list of students ordered by risk (highest first).
+						</p>
+					</div>
+					<p className="text-xs text-muted-foreground">
+						{prioritizedStudents.length} total students
+					</p>
+				</div>
+
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-8 px-2"
+									onClick={() => toggleSort("name")}
+								>
+									Name <ArrowUpDown className="ml-1 size-3.5" />
+								</Button>
+							</TableHead>
+							<TableHead>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-8 px-2"
+									onClick={() => toggleSort("course")}
+								>
+									Course <ArrowUpDown className="ml-1 size-3.5" />
+								</Button>
+							</TableHead>
+							<TableHead>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-8 px-2"
+									onClick={() => toggleSort("attendance")}
+								>
+									Attendance <ArrowUpDown className="ml-1 size-3.5" />
+								</Button>
+							</TableHead>
+							<TableHead>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-8 px-2"
+									onClick={() => toggleSort("risk")}
+								>
+									Risk <ArrowUpDown className="ml-1 size-3.5" />
+								</Button>
+							</TableHead>
+							<TableHead>Status</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{prioritizedStudents.map((student) => (
+							<TableRow key={student.id}>
+								<TableCell className="font-medium">{student.name}</TableCell>
+								<TableCell>{student.course}</TableCell>
+								<TableCell>{student.attendance.toFixed(1)}%</TableCell>
+								<TableCell>{student.riskPercentage.toFixed(1)}%</TableCell>
+								<TableCell>
+									<Badge
+										variant={
+											student.riskLevel === "high"
+												? "destructive"
+												: student.riskLevel === "medium"
+													? "secondary"
+													: "outline"
+										}
+									>
+										{student.riskLevel} risk
+									</Badge>
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
+		</DashboardLayout>
+	);
 }
