@@ -1,4 +1,4 @@
-import { useRouterState, Link } from '@tanstack/react-router'
+import { Link, Navigate, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import {
   LayoutDashboard,
@@ -40,6 +40,20 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '#/components/ui/sidebar'
+import { useAuth } from '#/features/auth/auth-provider'
+
+function getInitials(fullName: string | undefined) {
+  if (!fullName) {
+    return 'SS'
+  }
+
+  return fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+}
 
 interface DashboardLayoutProps {
   title: string
@@ -61,11 +75,27 @@ export function DashboardLayout({ title, description, children }: DashboardLayou
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
+  const navigate = useNavigate()
+  const { status, user, logout } = useAuth()
 
   const currentLabel = useMemo(() => {
     const matchedItem = navigationItems.find((item) => pathname.startsWith(item.href))
     return matchedItem?.label ?? 'Dashboard'
   }, [pathname])
+
+  if (status === 'loading') {
+    return (
+      <div className="flex min-h-svh items-center justify-center px-4">
+        <div className="rounded-2xl border border-border/70 bg-card/90 px-6 py-4 text-sm text-muted-foreground shadow-sm">
+          Checking your session...
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    return <Navigate to="/login" />
+  }
 
   return (
     <SidebarProvider defaultOpen>
@@ -170,21 +200,36 @@ export function DashboardLayout({ title, description, children }: DashboardLayou
                         className="h-10 gap-3 rounded-full border-border/80 bg-background px-2 pr-3"
                       >
                         <Avatar className="size-8">
-                          <AvatarFallback>AS</AvatarFallback>
+                          <AvatarFallback>{getInitials(user?.full_name)}</AvatarFallback>
                         </Avatar>
                         <span className="hidden text-left leading-tight sm:block">
                           <span className="block text-xs text-muted-foreground">Logged in as</span>
-                          <span className="block text-sm font-semibold text-foreground">Academic Staff</span>
+                          <span className="block text-sm font-semibold text-foreground">
+                            {user?.full_name ?? 'Academic Staff'}
+                          </span>
                         </span>
                         <ChevronDown className="size-4 text-muted-foreground" />
                       </Button>
                     }
                   />
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem>Profile</DropdownMenuItem>
+                    <DropdownMenuItem render={<Link to="/profile" />}>
+                      Profile
+                    </DropdownMenuItem>
                     <DropdownMenuItem>Role settings</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>Sign out</DropdownMenuItem>
+                    <DropdownMenuItem
+                      render={
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void logout().then(() => navigate({ to: '/login' }))
+                          }}
+                        />
+                      }
+                    >
+                      Sign out
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

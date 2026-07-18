@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudentsRouteImport } from './routes/students'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PredictionsRouteImport } from './routes/predictions'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ClassesRouteImport } from './routes/classes'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -38,9 +40,19 @@ const ReportsRoute = ReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PredictionsRoute = PredictionsRouteImport.update({
   id: '/predictions',
   path: '/predictions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -95,7 +107,9 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/classes': typeof ClassesRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/students': typeof StudentsRoute
@@ -110,7 +124,9 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/classes': typeof ClassesRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/students': typeof StudentsRoute
@@ -126,7 +142,9 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/classes': typeof ClassesRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/students': typeof StudentsRoute
@@ -143,7 +161,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/classes'
     | '/dashboard'
+    | '/login'
     | '/predictions'
+    | '/profile'
     | '/reports'
     | '/settings'
     | '/students'
@@ -158,7 +178,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/classes'
     | '/dashboard'
+    | '/login'
     | '/predictions'
+    | '/profile'
     | '/reports'
     | '/settings'
     | '/students'
@@ -173,7 +195,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/classes'
     | '/dashboard'
+    | '/login'
     | '/predictions'
+    | '/profile'
     | '/reports'
     | '/settings'
     | '/students'
@@ -189,7 +213,9 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   ClassesRoute: typeof ClassesRoute
   DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
   PredictionsRoute: typeof PredictionsRoute
+  ProfileRoute: typeof ProfileRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
   StudentsRoute: typeof StudentsRoute
@@ -222,11 +248,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/predictions': {
       id: '/predictions'
       path: '/predictions'
       fullPath: '/predictions'
       preLoaderRoute: typeof PredictionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -301,7 +341,9 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   ClassesRoute: ClassesRoute,
   DashboardRoute: DashboardRoute,
+  LoginRoute: LoginRoute,
   PredictionsRoute: PredictionsRoute,
+  ProfileRoute: ProfileRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
   StudentsRoute: StudentsRoute,

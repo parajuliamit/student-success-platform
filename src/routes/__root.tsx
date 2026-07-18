@@ -8,6 +8,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import { AuthProvider } from '#/features/auth/auth-provider'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
@@ -63,6 +64,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     '/predictions',
     '/reports',
     '/settings',
+    '/profile',
+    '/login',
   ]
   const showMarketingShell = !appRoutePrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
@@ -75,11 +78,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
-        <TooltipProvider>
-          {showMarketingShell ? <Header /> : null}
-          {children}
-          {showMarketingShell ? <Footer /> : null}
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            {showMarketingShell ? <Header /> : null}
+            {children}
+            {showMarketingShell ? <Footer /> : null}
+          </TooltipProvider>
+        </AuthProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
