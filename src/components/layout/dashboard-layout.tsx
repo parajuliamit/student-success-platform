@@ -102,18 +102,18 @@ export function DashboardLayout({
 	return (
 		<SidebarProvider defaultOpen>
 			<Sidebar collapsible="icon" variant="inset">
-				<SidebarHeader className="px-4 pt-4">
-					<div className="rounded-xl border border-sidebar-border/80 bg-sidebar-accent/50 p-3">
+				<SidebarHeader className="px-4 pt-4 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pt-2">
+					<div className="overflow-hidden rounded-xl border border-sidebar-border/80 bg-sidebar-accent/50 p-3 group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0">
 						<div className="flex items-center gap-3">
-							<div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-								<School className="size-5" />
+							<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-lg">
+								<School className="size-5 group-data-[collapsible=icon]:size-4" />
 							</div>
-							<div className="min-w-0">
+							<div className="min-w-0 group-data-[collapsible=icon]:hidden">
 								<p className="text-xs font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/65">
-									MSc Platform
+									MSc Project
 								</p>
 								<p className="truncate text-sm font-semibold text-sidebar-foreground">
-									Intelligent Student Success Platform
+									Student Success
 								</p>
 							</div>
 						</div>
@@ -146,27 +146,8 @@ export function DashboardLayout({
 						</SidebarGroupContent>
 					</SidebarGroup>
 				</SidebarContent>
-				<SidebarSeparator />
-				<SidebarFooter className="px-4 pb-4">
-					<div className="rounded-xl border border-sidebar-border/80 bg-sidebar-accent/40 p-3">
-						<div className="flex items-center justify-between gap-2">
-							<div>
-								<p className="text-xs font-semibold text-sidebar-foreground">
-									Staff view
-								</p>
-								<p className="text-xs text-sidebar-foreground/70">
-									Admins and staff use the same interface.
-								</p>
-							</div>
-							<Badge
-								variant="outline"
-								className="border-sidebar-border text-sidebar-foreground"
-							>
-								Role agnostic
-							</Badge>
-						</div>
-					</div>
-				</SidebarFooter>
+				<SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
+
 			</Sidebar>
 			<SidebarInset className="bg-transparent">
 				<div className="flex min-h-svh flex-col">
@@ -187,28 +168,7 @@ export function DashboardLayout({
 										</p>
 									) : null}
 								</div>
-								<DropdownMenu>
-									<DropdownMenuTrigger
-										render={
-											<Button
-												variant="ghost"
-												size="icon-sm"
-												className="relative"
-											>
-												<Bell />
-											</Button>
-										}
-									/>
-									<DropdownMenuContent align="end" className="w-72">
-										<DropdownMenuItem>New attendance alert</DropdownMenuItem>
-										<DropdownMenuItem>
-											Prediction refresh completed
-										</DropdownMenuItem>
-										<DropdownMenuItem>
-											Two students need review
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
+							
 								<DropdownMenu>
 									<DropdownMenuTrigger
 										render={
