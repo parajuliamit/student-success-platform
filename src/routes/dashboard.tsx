@@ -1,26 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { NotebookPen, School, TrendingUp, Users } from "lucide-react";
-import { useMemo } from "react";
+import { AlertTriangle, School, Target, Users } from "lucide-react";
+import { useMemo, useState } from "react";
 import { AtRiskTable } from "#/components/dashboard/at-risk-table";
-import { AttendanceChart } from "#/components/dashboard/attendance-chart";
-import { GradesChart } from "#/components/dashboard/grades-chart";
 import { RiskChart } from "#/components/dashboard/risk-chart";
 import { StatsCard } from "#/components/dashboard/stats-card";
 import { DashboardLayout } from "#/components/layout/dashboard-layout";
+import { StudentFormDialog } from "#/components/students/student-form-dialog";
 import { useAuth } from "#/features/auth/auth-provider";
-import { dashboardOverview } from "#/features/dashboard/mock-data";
+import {
+	buildStudentPayload,
+	createEmptyStudentFormValues,
+	createStudentFormValues,
+	type StudentFormValues,
+} from "#/features/students/student-form";
 import {
 	buildCourseSummaries,
 	buildDashboardStats,
-	buildDashboardStudentRows,
-	buildGradeByCoursePoints,
 	buildLiveStudentSummaries,
 	buildRiskDistribution,
 } from "#/features/students/student-insights";
 import {
-	fetchRiskCalculations,
 	fetchStudents,
+	type StudentMutationInput,
+	updateStudent,
 } from "#/features/students/students-api";
 
 export const Route = createFileRoute("/dashboard")({
@@ -29,6 +32,15 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardPage() {
 	const { token } = useAuth();
+	const queryClient = useQueryClient();
+	const [isFormOpen, setIsFormOpen] = useState(false);
+	const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
+		null,
+	);
+	const [formValues, setFormValues] = useState<StudentFormValues>(
+		createEmptyStudentFormValues(),
+	);
+	const [formError, setFormError] = useState<string | null>(null);
 
 	const studentsQuery = useQuery({
 		queryKey: ["students", token],
@@ -36,19 +48,10 @@ function DashboardPage() {
 		enabled: Boolean(token),
 	});
 
-	const riskQuery = useQuery({
-		queryKey: ["risk-calculations", token],
-		queryFn: () => fetchRiskCalculations(token ?? ""),
-		enabled: Boolean(token),
-	});
-
 	const studentSummaries = useMemo(
 		() =>
-			buildLiveStudentSummaries(
-				studentsQuery.data?.students ?? [],
-				riskQuery.data?.risk_calculations ?? [],
-			),
-		[riskQuery.data?.risk_calculations, studentsQuery.data?.students],
+			buildLiveStudentSummaries(studentsQuery.data?.students ?? []),
+		[studentsQuery.data?.students],
 	);
 
 	const stats = useMemo(
@@ -59,14 +62,9 @@ function DashboardPage() {
 		() => buildRiskDistribution(studentSummaries),
 		[studentSummaries],
 	);
-	const gradeByClass = useMemo(
-		() => buildGradeByCoursePoints(studentSummaries),
-		[studentSummaries],
-	);
-	const attendanceTrend = dashboardOverview.attendanceTrend;
 	const recentAtRiskStudents = useMemo(
 		() =>
-			buildDashboardStudentRows(studentSummaries)
+			studentSummaries
 				.filter((student) => student.riskLevel !== "low")
 				.slice(0, 8),
 		[studentSummaries],
@@ -75,7 +73,87 @@ function DashboardPage() {
 		() => buildCourseSummaries(studentSummaries).slice(0, 4),
 		[studentSummaries],
 	);
-	const isLoading = studentsQuery.isPending || riskQuery.isPending;
+	const isLoading = studentsQuery.isPending;
+
+	const selectedStudent = useMemo(
+		() =>
+			selectedStudentId == null
+				? null
+				: (studentSummaries.find((student) => student.id === selectedStudentId) ??
+					null),
+		[selectedStudentId, studentSummaries],
+	);
+
+	const updateStudentMutation = useMutation({
+		mutationFn: ({
+			studentId,
+			payload,
+		}: {
+			studentId: number;
+			payload: StudentMutationInput;
+		}) => updateStudent(token ?? "", studentId, payload),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["students"] });
+			closeForm();
+		},
+	});
+
+	const closeForm = () => {
+		setIsFormOpen(false);
+		setSelectedStudentId(null);
+		setFormValues(createEmptyStudentFormValues());
+		setFormError(null);
+	};
+
+	const openEditForm = (studentId: number) => {
+		const student = studentSummaries.find((entry) => entry.id === studentId);
+
+		if (!student) {
+			setFormError("Unable to load student details.");
+			return;
+		}
+
+		setSelectedStudentId(student.id);
+		setFormValues(createStudentFormValues(student));
+		setFormError(null);
+		setIsFormOpen(true);
+	};
+
+	const handleFormValueChange = <Key extends keyof StudentFormValues>(
+		key: Key,
+		value: StudentFormValues[Key],
+	) => {
+		setFormValues((currentValues) => ({
+			...currentValues,
+			[key]: value,
+		}));
+	};
+
+	const isSaving = updateStudentMutation.isPending;
+	const mutationError = updateStudentMutation.error?.message;
+
+	async function handleStudentSubmit(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		setFormError(null);
+
+		try {
+			if (selectedStudent == null) {
+				throw new Error("Select a student before updating.");
+			}
+
+			const payload = buildStudentPayload(formValues);
+			await updateStudentMutation.mutateAsync({
+				studentId: selectedStudent.id,
+				payload,
+			});
+		} catch (submissionError) {
+			setFormError(
+				submissionError instanceof Error
+					? submissionError.message
+					: "Unable to save student details.",
+			);
+		}
+	}
 
 	return (
 		<DashboardLayout
@@ -83,6 +161,25 @@ function DashboardPage() {
 			description="A live operational view for academic staff to monitor student success, intervention risk, and course performance."
 		>
 			<div className="space-y-8">
+				<StudentFormDialog
+					open={isFormOpen}
+					mode="edit"
+					values={formValues}
+					isSaving={isSaving}
+					errorMessage={formError ?? mutationError ?? null}
+					onOpenChange={(open) => {
+						if (open) {
+							setIsFormOpen(true);
+							return;
+						}
+
+						closeForm();
+					}}
+					onCancel={closeForm}
+					onSubmit={handleStudentSubmit}
+					onValueChange={handleFormValueChange}
+				/>
+
 				<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 					{isLoading ? null : (
 						<>
@@ -90,24 +187,19 @@ function DashboardPage() {
 							<StatsCard {...stats[1]} icon={<School className="size-5" />} />
 							<StatsCard
 								{...stats[2]}
-								icon={<TrendingUp className="size-5" />}
+								icon={<Target className="size-5" />}
 							/>
 							<StatsCard
 								{...stats[3]}
-								icon={<NotebookPen className="size-5" />}
+								icon={<AlertTriangle className="size-5" />}
 							/>
 						</>
 					)}
 				</section>
 
 				<section className="grid gap-4 xl:grid-cols-2">
-					<AttendanceChart data={attendanceTrend} />
 					<RiskChart data={riskDistribution} />
-				</section>
-
-				<section className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
-					<GradesChart data={gradeByClass} />
-					<div className="space-y-4 rounded-xl border border-border/70 bg-card/90 p-4 shadow-sm">
+							<div className="space-y-4 rounded-xl border border-border/70 bg-card/90 p-4 shadow-sm">
 						<div>
 							<p className="text-sm font-semibold text-foreground">Overview</p>
 							<p className="mt-1 text-sm text-muted-foreground">
@@ -132,7 +224,7 @@ function DashboardPage() {
 									</p>
 									<p className="mt-3 text-sm text-foreground">
 										{courseRecord.averageAttendance.toFixed(1)}% avg attendance
-										· {courseRecord.averageRisk.toFixed(1)}% avg risk
+										· {courseRecord.averageRiskScore.toFixed(2)} avg risk score
 									</p>
 								</div>
 							))}
@@ -140,7 +232,10 @@ function DashboardPage() {
 					</div>
 				</section>
 
-				<AtRiskTable students={recentAtRiskStudents} />
+				<AtRiskTable
+					students={recentAtRiskStudents}
+					onViewStudent={(student) => openEditForm(student.id)}
+				/>
 			</div>
 		</DashboardLayout>
 	);

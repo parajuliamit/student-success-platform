@@ -15,10 +15,7 @@ import {
 } from "#/components/ui/table";
 import { useAuth } from "#/features/auth/auth-provider";
 import { buildLiveStudentSummaries } from "#/features/students/student-insights";
-import {
-	fetchRiskCalculations,
-	fetchStudents,
-} from "#/features/students/students-api";
+import { fetchStudents } from "#/features/students/students-api";
 
 export const Route = createFileRoute("/predictions")({
 	component: PredictionsPage,
@@ -37,18 +34,9 @@ function PredictionsPage() {
 		enabled: Boolean(token),
 	});
 
-	const riskQuery = useQuery({
-		queryKey: ["risk-calculations", token],
-		queryFn: () => fetchRiskCalculations(token ?? ""),
-		enabled: Boolean(token),
-	});
-
 	const prioritizedStudents = useMemo(
 		() =>
-			buildLiveStudentSummaries(
-				studentsQuery.data?.students ?? [],
-				riskQuery.data?.risk_calculations ?? [],
-			).sort((first, second) => {
+			buildLiveStudentSummaries(studentsQuery.data?.students ?? []).sort((first, second) => {
 				if (sortKey === "name") {
 					return sortDirection === "asc"
 						? first.name.localeCompare(second.name)
@@ -68,16 +56,23 @@ function PredictionsPage() {
 				}
 
 				return sortDirection === "asc"
-					? first.riskPercentage - second.riskPercentage
-					: second.riskPercentage - first.riskPercentage;
+					? first.riskScore - second.riskScore
+					: second.riskScore - first.riskScore;
 			}),
-		[
-			riskQuery.data?.risk_calculations,
-			sortDirection,
-			sortKey,
-			studentsQuery.data?.students,
-		],
+		[sortDirection, sortKey, studentsQuery.data?.students],
 	);
+
+	const riskBadgeVariant = (riskLevel: string) => {
+		if (riskLevel === "critical" || riskLevel === "high") {
+			return "destructive" as const;
+		}
+
+		if (riskLevel === "medium") {
+			return "secondary" as const;
+		}
+
+		return "outline" as const;
+	};
 
 	const toggleSort = (key: "name" | "course" | "attendance" | "risk") => {
 		if (sortKey === key) {
@@ -163,16 +158,10 @@ function PredictionsPage() {
 								<TableCell className="font-medium">{student.name}</TableCell>
 								<TableCell>{student.course}</TableCell>
 								<TableCell>{student.attendance.toFixed(1)}%</TableCell>
-								<TableCell>{student.riskPercentage.toFixed(1)}%</TableCell>
+								<TableCell>{student.riskScore.toFixed(2)}</TableCell>
 								<TableCell>
 									<Badge
-										variant={
-											student.riskLevel === "high"
-												? "destructive"
-												: student.riskLevel === "medium"
-													? "secondary"
-													: "outline"
-										}
+										variant={riskBadgeVariant(student.riskLevel)}
 									>
 										{student.riskLevel} risk
 									</Badge>

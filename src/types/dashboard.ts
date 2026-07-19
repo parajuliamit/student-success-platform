@@ -1,4 +1,4 @@
-export type RiskLevel = 'low' | 'medium' | 'high'
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
 
 export interface DashboardStudent {
   id: string
@@ -6,7 +6,7 @@ export interface DashboardStudent {
   classId: string
   className: string
   attendance: number
-  predictedScore: number
+  riskScore: number
   riskLevel: RiskLevel
 }
 
@@ -14,18 +14,12 @@ export interface DashboardClass {
   id: string
   name: string
   instructor: string
-  averageGrade: number
   studentCount: number
 }
 
 export interface AttendanceTrendPoint {
   month: string
   attendance: number
-}
-
-export interface GradeByClassPoint {
-  className: string
-  averageGrade: number
 }
 
 export interface RiskDistributionPoint {
@@ -37,15 +31,12 @@ export interface RiskDistributionPoint {
 export interface DashboardStat {
   label: string
   value: string
-  change: string
-  trend: 'up' | 'down'
   description: string
 }
 
 export interface DashboardOverview {
   stats: DashboardStat[]
   attendanceTrend: AttendanceTrendPoint[]
-  gradeByClass: GradeByClassPoint[]
   riskDistribution: RiskDistributionPoint[]
   recentAtRiskStudents: DashboardStudent[]
   students: DashboardStudent[]

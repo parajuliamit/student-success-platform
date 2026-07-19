@@ -50,7 +50,7 @@ export function RiskChart({ data }: RiskChartProps) {
             </PieChart>
           </ResponsiveContainer>
         </ChartContainer>
-        <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
+        <div className="mt-4 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
           {data.map((entry) => (
             <div key={entry.name} className="rounded-lg border border-border/60 bg-muted/30 p-3">
               <div className="flex items-center gap-2">

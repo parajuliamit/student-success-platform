@@ -1,16 +1,14 @@
 import type {
 	DashboardStat,
-	GradeByClassPoint,
 	RiskDistributionPoint,
 	RiskLevel,
 } from "#/types/dashboard";
-import type { RiskCalculationRecord, StudentRecord } from "./students-api";
+import type { StudentRecord } from "./students-api";
 
 export type LiveStudentSummary = StudentRecord & {
 	attendance: number;
-	riskPercentage: number;
+	riskScore: number;
 	riskLevel: RiskLevel;
-	predictedScore: number;
 	displayId: string;
 };
 
@@ -18,49 +16,36 @@ export interface CourseSummary {
 	course: string;
 	studentCount: number;
 	averageAttendance: number;
-	averageRisk: number;
+	averageRiskScore: number;
 	highRiskCount: number;
 }
 
 const riskColors: Record<RiskLevel, string> = {
 	low: "hsl(162 48% 42%)",
 	medium: "hsl(42 92% 52%)",
-	high: "hsl(0 72% 55%)",
+	high: "hsl(18 82% 54%)",
+	critical: "hsl(0 72% 55%)",
 };
 
-export function getRiskLevel(
-	attendance: number,
-	riskPercentage: number,
-): RiskLevel {
-	if (riskPercentage >= 50 || attendance < 70) {
-		return "high";
-	}
+export function getRiskLevel(riskScore: number): RiskLevel {
+	const normalizedScore = Math.max(0, Math.min(3, Math.round(riskScore)));
+	const riskLevels: RiskLevel[] = ["low", "medium", "high", "critical"];
 
-	if (riskPercentage >= 25 || attendance < 85) {
-		return "medium";
-	}
-
-	return "low";
+	return riskLevels[normalizedScore];
 }
 
 export function buildLiveStudentSummaries(
 	students: StudentRecord[],
-	riskCalculations: RiskCalculationRecord[],
 ): LiveStudentSummary[] {
 	return students.map((student) => {
 		const attendance = student.risk_profile?.attendance ?? 0;
-		const riskPercentage =
-			riskCalculations.find(
-				(calculation) =>
-					calculation.risk_profile_id === student.risk_profile?.id,
-			)?.risk_percentage ?? Math.max(0, 100 - attendance);
+		const riskScore = student.risk_profile?.risk_score ?? 0;
 
 		return {
 			...student,
 			attendance,
-			riskPercentage,
-			riskLevel: getRiskLevel(attendance, riskPercentage),
-			predictedScore: Math.max(0, Math.round(100 - riskPercentage)),
+			riskScore: Math.max(0, Math.min(3, riskScore)),
+			riskLevel: getRiskLevel(riskScore),
 			displayId: `STD-${String(student.id).padStart(4, "0")}`,
 		};
 	});
@@ -88,8 +73,11 @@ export function buildCourseSummaries(
 		};
 
 		bucket.attendanceTotal += student.attendance;
-		bucket.riskTotal += student.riskPercentage;
-		bucket.highRiskCount += student.riskLevel === "high" ? 1 : 0;
+		bucket.riskTotal += student.riskScore;
+		bucket.highRiskCount +=
+			student.riskLevel === "high" || student.riskLevel === "critical"
+				? 1
+				: 0;
 		bucket.count += 1;
 		groupedCourses.set(student.course, bucket);
 	}
@@ -100,7 +88,8 @@ export function buildCourseSummaries(
 			studentCount: bucket.count,
 			averageAttendance:
 				bucket.count === 0 ? 0 : bucket.attendanceTotal / bucket.count,
-			averageRisk: bucket.count === 0 ? 0 : bucket.riskTotal / bucket.count,
+			averageRiskScore:
+				bucket.count === 0 ? 0 : bucket.riskTotal / bucket.count,
 			highRiskCount: bucket.highRiskCount,
 		}))
 		.sort(
@@ -119,10 +108,10 @@ export function buildDashboardStats(
 			: students.reduce((sum, student) => sum + student.attendance, 0) /
 				students.length;
 
-	const averageRisk =
+	const averageRiskScore =
 		students.length === 0
 			? 0
-			: students.reduce((sum, student) => sum + student.riskPercentage, 0) /
+			: students.reduce((sum, student) => sum + student.riskScore, 0) /
 				students.length;
 
 	const atRiskStudents = students.filter(
@@ -133,30 +122,22 @@ export function buildDashboardStats(
 		{
 			label: "Total Students",
 			value: String(students.length),
-			change: "live",
-			trend: "up",
-			description: "Current student records from the backend",
+			description: "Current student records",
 		},
 		{
 			label: "At-Risk Students",
 			value: String(atRiskStudents),
-			change: "live",
-			trend: "down",
-			description: "Students at medium or high risk",
+			description: "Students at high or critical risk levels",
 		},
 		{
 			label: "Average Attendance",
 			value: `${averageAttendance.toFixed(1)}%`,
-			change: "live",
-			trend: "up",
 			description: "Attendance pulled from each risk profile",
 		},
 		{
-			label: "Average Risk",
-			value: `${averageRisk.toFixed(1)}%`,
-			change: "live",
-			trend: "down",
-			description: "Average risk calculation across all students",
+			label: "Average Risk Score",
+			value: averageRiskScore.toFixed(2),
+			description: "Average score on the 0-3 risk scale",
 		},
 	];
 }
@@ -169,23 +150,15 @@ export function buildRiskDistribution(
 			accumulator[student.riskLevel] += 1;
 			return accumulator;
 		},
-		{ low: 0, medium: 0, high: 0 },
+		{ low: 0, medium: 0, high: 0, critical: 0 },
 	);
 
 	return [
 		{ name: "Low", value: counts.low, fill: riskColors.low },
 		{ name: "Medium", value: counts.medium, fill: riskColors.medium },
 		{ name: "High", value: counts.high, fill: riskColors.high },
+		{ name: "Critical", value: counts.critical, fill: riskColors.critical },
 	];
-}
-
-export function buildGradeByCoursePoints(
-	students: LiveStudentSummary[],
-): GradeByClassPoint[] {
-	return buildCourseSummaries(students).map((courseSummary) => ({
-		className: courseSummary.course,
-		averageGrade: Math.max(0, Math.round(100 - courseSummary.averageRisk)),
-	}));
 }
 
 export function buildDashboardStudentRows(students: LiveStudentSummary[]) {
@@ -195,7 +168,7 @@ export function buildDashboardStudentRows(students: LiveStudentSummary[]) {
 		classId: student.course,
 		className: student.course,
 		attendance: Number(student.attendance.toFixed(1)),
-		predictedScore: student.predictedScore,
+		riskScore: student.riskScore,
 		riskLevel: student.riskLevel,
 	}));
 }

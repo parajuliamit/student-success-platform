@@ -15,10 +15,7 @@ import {
 	buildCourseSummaries,
 	buildLiveStudentSummaries,
 } from "#/features/students/student-insights";
-import {
-	fetchRiskCalculations,
-	fetchStudents,
-} from "#/features/students/students-api";
+import { fetchStudents } from "#/features/students/students-api";
 
 export const Route = createFileRoute("/classes")({
 	component: ClassesPage,
@@ -33,21 +30,12 @@ function ClassesPage() {
 		enabled: Boolean(token),
 	});
 
-	const riskQuery = useQuery({
-		queryKey: ["risk-calculations", token],
-		queryFn: () => fetchRiskCalculations(token ?? ""),
-		enabled: Boolean(token),
-	});
-
 	const courseSummaries = useMemo(
 		() =>
 			buildCourseSummaries(
-				buildLiveStudentSummaries(
-					studentsQuery.data?.students ?? [],
-					riskQuery.data?.risk_calculations ?? [],
-				),
+				buildLiveStudentSummaries(studentsQuery.data?.students ?? []),
 			),
-		[riskQuery.data?.risk_calculations, studentsQuery.data?.students],
+		[studentsQuery.data?.students],
 	);
 
 	const averageClassSize =
@@ -116,7 +104,7 @@ function ClassesPage() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="grid gap-3 sm:grid-cols-3">
-					{courseSummaries.slice(0, 3).map((course) => (
+						{courseSummaries.map((course) => (
 						<div
 							key={course.course}
 							className="rounded-xl border border-border/60 bg-muted/25 p-4"

@@ -12,7 +12,12 @@ export interface StudentRiskProfile {
 	gender: "male" | "female";
 	age: number;
 	learning_style: "visual" | "auditory" | "kinesthetic" | "reading_writing";
-	online_courses: boolean;
+	online_courses: number;
+	discussions: boolean;
+	assignments: number;
+	education_technology: boolean;
+	stress_level: number;
+	risk_score: number;
 	created_at: string;
 	updated_at: string;
 }
