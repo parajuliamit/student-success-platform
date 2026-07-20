@@ -21,9 +21,6 @@ export function StatsCard({
             {value}
           </div>
           <p className="text-sm text-muted-foreground">{description}</p>
-          <Badge variant="outline" className="border-border/80 text-muted-foreground">
-            Live
-          </Badge>
         </div>
         <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           {icon}

@@ -27,8 +27,8 @@ export function RiskChart({ data }: RiskChartProps) {
       <CardContent>
         <ChartContainer
           config={{}}
-          className="h-[320px] w-full"
-          initialDimension={{ width: 320, height: 320 }}
+          className="h-[260px] w-full"
+          initialDimension={{ width: 320, height: 260 }}
         >
           <ResponsiveContainer>
             <PieChart>

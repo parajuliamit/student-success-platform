@@ -108,11 +108,14 @@ export function buildDashboardStats(
 			: students.reduce((sum, student) => sum + student.attendance, 0) /
 				students.length;
 
-	const averageRiskScore =
+	const averageAssignmentSubmitted =
 		students.length === 0
 			? 0
-			: students.reduce((sum, student) => sum + student.riskScore, 0) /
-				students.length;
+			: students.reduce(
+					(sum, student) =>
+						sum + (student.risk_profile?.assignments ?? 0),
+					0,
+			  ) / students.length;
 
 	const atRiskStudents = students.filter(
 		(student) => student.riskLevel !== "low",
@@ -122,22 +125,22 @@ export function buildDashboardStats(
 		{
 			label: "Total Students",
 			value: String(students.length),
-			description: "Current student records",
+			description: "Total number of students in the system",
 		},
 		{
 			label: "At-Risk Students",
 			value: String(atRiskStudents),
-			description: "Students at high or critical risk levels",
+			description: "Students at High or Critical risk levels",
 		},
 		{
 			label: "Average Attendance",
 			value: `${averageAttendance.toFixed(1)}%`,
-			description: "Attendance pulled from each risk profile",
+			description: "Average attendance % across all students",
 		},
 		{
-			label: "Average Risk Score",
-			value: averageRiskScore.toFixed(2),
-			description: "Average score on the 0-3 risk scale",
+			label: "Average Assignment Submitted",
+			value: averageAssignmentSubmitted.toFixed(2),
+			description: "% of assignments submitted on average",
 		},
 	];
 }

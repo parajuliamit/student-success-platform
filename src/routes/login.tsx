@@ -4,7 +4,7 @@ import {
 	Navigate,
 	useNavigate,
 } from "@tanstack/react-router";
-import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "#/components/ui/button";
 import {
@@ -57,7 +57,10 @@ function LoginPage() {
 		<main className="relative mx-auto flex min-h-svh w-full items-center justify-center overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
 			<div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(79,184,178,0.22),transparent_34%),radial-gradient(circle_at_top_right,rgba(47,106,74,0.16),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.72),rgba(231,243,236,0.92))] dark:bg-[radial-gradient(circle_at_top_left,rgba(79,184,178,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(47,106,74,0.12),transparent_30%),linear-gradient(180deg,rgba(8,18,22,0.96),rgba(10,20,24,0.92))]" />
 			<div className="w-full max-w-md">
-				<section className="flex items-center">
+				<section className="flex items-center flex-col">
+					<div className="mb-4 text-center text-2xl font-semibold tracking-tight text-foreground sm:text-2xl">
+						Student Success Prediction System 
+					</div>
 					<Card className="w-full rounded-3xl border-[color-mix(in_oklch,var(--border),white_12%)] bg-[var(--surface-strong)] shadow-[0_24px_80px_rgba(15,45,40,0.16)] backdrop-blur-xl">
 						<CardHeader className="space-y-2 pb-4">
 							<CardTitle className="text-2xl">Welcome back</CardTitle>

@@ -47,8 +47,8 @@ export function AtRiskTable({ students, onViewStudent }: AtRiskTableProps) {
               <TableHead>Name</TableHead>
               <TableHead>Class</TableHead>
               <TableHead>Attendance</TableHead>
+              <TableHead>Assignments</TableHead>
               <TableHead>Risk Level</TableHead>
-              <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -58,6 +58,7 @@ export function AtRiskTable({ students, onViewStudent }: AtRiskTableProps) {
                 <TableCell>{student.name}</TableCell>
                 <TableCell>{student.course}</TableCell>
                 <TableCell>{student.attendance}%</TableCell>
+                <TableCell>{student.risk_profile?.assignments ?? 0}%</TableCell>
                 <TableCell>
                   <Badge variant="secondary" className={riskStyles[student.riskLevel]}>
                     {student.riskLevel}

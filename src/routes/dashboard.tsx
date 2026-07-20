@@ -65,7 +65,12 @@ function DashboardPage() {
 	const recentAtRiskStudents = useMemo(
 		() =>
 			studentSummaries
-				.filter((student) => student.riskLevel !== "low")
+				.sort((a, b) => {
+					if (a.riskScore !== b.riskScore) {
+						return b.riskScore - a.riskScore; 
+					}
+					return a.attendance - b.attendance;
+				})
 				.slice(0, 8),
 		[studentSummaries],
 	);
@@ -203,7 +208,7 @@ function DashboardPage() {
 						<div>
 							<p className="text-sm font-semibold text-foreground">Overview</p>
 							<p className="mt-1 text-sm text-muted-foreground">
-								Live student and risk data grouped by course from the backend.
+								Quick summary of the top courses with the most high-risk students and their average attendance and risk scores.
 							</p>
 						</div>
 						<div className="grid gap-3 sm:grid-cols-2">
@@ -213,7 +218,7 @@ function DashboardPage() {
 									className="rounded-xl border border-border/60 bg-muted/25 p-4"
 								>
 									<p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-										{courseRecord.studentCount} learners
+										{courseRecord.studentCount} students
 									</p>
 									<p className="mt-1 font-medium text-foreground">
 										{courseRecord.course}
