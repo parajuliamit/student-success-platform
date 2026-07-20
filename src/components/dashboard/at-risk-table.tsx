@@ -56,7 +56,7 @@ export function AtRiskTable({ students, onViewStudent }: AtRiskTableProps) {
               <TableRow key={student.id}>
                 <TableCell className="font-medium text-foreground">{student.displayId}</TableCell>
                 <TableCell>{student.name}</TableCell>
-                <TableCell>{student.course}</TableCell>
+                <TableCell>{student.course?.name ?? 'Unassigned'}</TableCell>
                 <TableCell>{student.attendance}%</TableCell>
                 <TableCell>{student.risk_profile?.assignments ?? 0}%</TableCell>
                 <TableCell>

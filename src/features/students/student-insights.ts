@@ -65,7 +65,8 @@ export function buildCourseSummaries(
 	>();
 
 	for (const student of students) {
-		const bucket = groupedCourses.get(student.course) ?? {
+		const courseName = student.course?.name ?? "Unassigned";
+		const bucket = groupedCourses.get(courseName) ?? {
 			attendanceTotal: 0,
 			riskTotal: 0,
 			highRiskCount: 0,
@@ -79,7 +80,7 @@ export function buildCourseSummaries(
 				? 1
 				: 0;
 		bucket.count += 1;
-		groupedCourses.set(student.course, bucket);
+		groupedCourses.set(courseName, bucket);
 	}
 
 	return Array.from(groupedCourses.entries())
@@ -168,8 +169,8 @@ export function buildDashboardStudentRows(students: LiveStudentSummary[]) {
 	return students.map((student) => ({
 		id: student.displayId,
 		name: student.name,
-		classId: student.course,
-		className: student.course,
+		courseId: student.course?.name ?? "Unassigned",
+		courseName: student.course?.name ?? "Unassigned",
 		attendance: Number(student.attendance.toFixed(1)),
 		riskScore: student.riskScore,
 		riskLevel: student.riskLevel,

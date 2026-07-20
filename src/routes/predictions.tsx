@@ -16,6 +16,7 @@ import {
 import { useAuth } from "#/features/auth/auth-provider";
 import { buildLiveStudentSummaries } from "#/features/students/student-insights";
 import { fetchStudents } from "#/features/students/students-api";
+import type { RiskLevel } from "#/types/dashboard";
 
 export const Route = createFileRoute("/predictions")({
 	component: PredictionsPage,
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/predictions")({
 function PredictionsPage() {
 	const { token } = useAuth();
 	const [sortKey, setSortKey] = useState<
-		"name" | "course" | "attendance" | "risk"
+		"name" | "course" | "attendance" | "risk" | "assignments"
 	>("risk");
 	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -44,15 +45,27 @@ function PredictionsPage() {
 				}
 
 				if (sortKey === "course") {
+					const firstCourseName = first.course?.name ?? "";
+					const secondCourseName = second.course?.name ?? "";
+
 					return sortDirection === "asc"
-						? first.course.localeCompare(second.course)
-						: second.course.localeCompare(first.course);
+						? firstCourseName.localeCompare(secondCourseName)
+						: secondCourseName.localeCompare(firstCourseName);
 				}
 
 				if (sortKey === "attendance") {
 					return sortDirection === "asc"
 						? first.attendance - second.attendance
 						: second.attendance - first.attendance;
+				}
+
+				if (sortKey === "assignments") {
+					const firstAssignments = first.risk_profile?.assignments ?? 0;
+					const secondAssignments = second.risk_profile?.assignments ?? 0;
+
+					return sortDirection === "asc"
+						? firstAssignments - secondAssignments
+						: secondAssignments - firstAssignments;
 				}
 
 				return sortDirection === "asc"
@@ -62,19 +75,14 @@ function PredictionsPage() {
 		[sortDirection, sortKey, studentsQuery.data?.students],
 	);
 
-	const riskBadgeVariant = (riskLevel: string) => {
-		if (riskLevel === "critical" || riskLevel === "high") {
-			return "destructive" as const;
-		}
+	const riskStyles: Record<RiskLevel, string> = {
+	  low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 uppercase',
+	  medium: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 uppercase',
+	  high: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 uppercase',
+	  critical: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 uppercase',
+	}
 
-		if (riskLevel === "medium") {
-			return "secondary" as const;
-		}
-
-		return "outline" as const;
-	};
-
-	const toggleSort = (key: "name" | "course" | "attendance" | "risk") => {
+	const toggleSort = (key: "name" | "course" | "attendance" | "risk" | "assignments") => {
 		if (sortKey === key) {
 			setSortDirection((currentDirection) =>
 				currentDirection === "asc" ? "desc" : "asc",
@@ -144,26 +152,35 @@ function PredictionsPage() {
 									variant="ghost"
 									size="sm"
 									className="h-8 px-2"
+									onClick={() => toggleSort("assignments")}
+								>
+									Assignments <ArrowUpDown className="ml-1 size-3.5" />
+								</Button>
+							</TableHead>
+							<TableHead>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-8 px-2"
 									onClick={() => toggleSort("risk")}
 								>
 									Risk <ArrowUpDown className="ml-1 size-3.5" />
 								</Button>
 							</TableHead>
-							<TableHead>Status</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{prioritizedStudents.map((student) => (
 							<TableRow key={student.id}>
 								<TableCell className="font-medium">{student.name}</TableCell>
-								<TableCell>{student.course}</TableCell>
+								<TableCell>{student.course?.name ?? "Unassigned"}</TableCell>
 								<TableCell>{student.attendance.toFixed(1)}%</TableCell>
-								<TableCell>{student.riskScore.toFixed(2)}</TableCell>
+								<TableCell>{student.risk_profile?.assignments ?? 0}%</TableCell>
 								<TableCell>
 									<Badge
-										variant={riskBadgeVariant(student.riskLevel)}
+										 variant="secondary" className={riskStyles[student.riskLevel]}
 									>
-										{student.riskLevel} risk
+										{student.riskLevel}
 									</Badge>
 								</TableCell>
 							</TableRow>

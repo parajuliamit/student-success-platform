@@ -11,6 +11,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Switch } from "#/components/ui/switch";
+import type { CourseRecord } from "#/features/courses/courses-api";
 import {
 	learningStyleOptions,
 	type StudentFormMode,
@@ -21,6 +22,8 @@ interface StudentFormDialogProps {
 	open: boolean;
 	mode: StudentFormMode;
 	values: StudentFormValues;
+	courses: CourseRecord[];
+	isCoursesLoading: boolean;
 	isSaving: boolean;
 	errorMessage: string | null;
 	onOpenChange: (open: boolean) => void;
@@ -36,6 +39,8 @@ export function StudentFormDialog({
 	open,
 	mode,
 	values,
+	courses,
+	isCoursesLoading,
 	isSaving,
 	errorMessage,
 	onOpenChange,
@@ -92,15 +97,29 @@ export function StudentFormDialog({
 										/>
 									</FormField>
 									<FormField label="Course" htmlFor="student-course">
-										<Input
+										<select
 											id="student-course"
-											value={values.course}
+											value={values.courseId}
 											onChange={(event) =>
-												onValueChange("course", event.target.value)
+												onValueChange("courseId", event.target.value)
 											}
-											placeholder="Computer Science"
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+											disabled={isCoursesLoading || courses.length === 0}
 											required
-										/>
+										>
+											<option value="" disabled>
+												{isCoursesLoading
+													? "Loading courses..."
+													: courses.length === 0
+														? "No courses available"
+														: "Select course"}
+											</option>
+											{courses.map((course) => (
+												<option key={course.id} value={String(course.id)}>
+													{course.name}
+												</option>
+											))}
+										</select>
 									</FormField>
 									<FormField label="Joined year" htmlFor="student-joined-year">
 										<Input

@@ -8,6 +8,7 @@ import { StatsCard } from "#/components/dashboard/stats-card";
 import { DashboardLayout } from "#/components/layout/dashboard-layout";
 import { StudentFormDialog } from "#/components/students/student-form-dialog";
 import { useAuth } from "#/features/auth/auth-provider";
+import { fetchCourses } from "#/features/courses/courses-api";
 import {
 	buildStudentPayload,
 	createEmptyStudentFormValues,
@@ -47,6 +48,14 @@ function DashboardPage() {
 		queryFn: () => fetchStudents(token ?? ""),
 		enabled: Boolean(token),
 	});
+
+	const coursesQuery = useQuery({
+		queryKey: ["courses", token],
+		queryFn: () => fetchCourses(token ?? ""),
+		enabled: Boolean(token),
+	});
+
+	const courses = coursesQuery.data?.courses ?? [];
 
 	const studentSummaries = useMemo(
 		() =>
@@ -170,6 +179,8 @@ function DashboardPage() {
 					open={isFormOpen}
 					mode="edit"
 					values={formValues}
+					courses={courses}
+					isCoursesLoading={coursesQuery.isPending}
 					isSaving={isSaving}
 					errorMessage={formError ?? mutationError ?? null}
 					onOpenChange={(open) => {

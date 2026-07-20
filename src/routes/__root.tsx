@@ -59,7 +59,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const appRoutePrefixes = [
     '/dashboard',
     '/students',
-    '/classes',
+    '/courses',
     '/analytics',
     '/predictions',
     '/reports',

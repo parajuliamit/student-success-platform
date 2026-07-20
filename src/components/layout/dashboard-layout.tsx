@@ -63,7 +63,7 @@ interface DashboardLayoutProps {
 const navigationItems = [
 	{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
 	{ label: "Students", href: "/students", icon: GraduationCap },
-	{ label: "Classes", href: "/classes", icon: School },
+	{ label: "Courses", href: "/courses", icon: School },
 	{ label: "Predictions", href: "/predictions", icon: ShieldAlert },
 ] as const;
 

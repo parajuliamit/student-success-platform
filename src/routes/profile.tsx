@@ -103,18 +103,6 @@ function ProfilePage() {
               </Button>
             </CardContent>
           </Card>
-
-          <Card className="rounded-2xl border-border/70 bg-card/90 shadow-sm">
-            <CardHeader>
-              <CardTitle>API coverage</CardTitle>
-              <CardDescription>The UI now uses the same backend contract across all auth steps.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>Login posts username and password to /auth/login.</p>
-              <p>Profile refresh reads the bearer token from local storage and calls /auth/me.</p>
-              <p>Logout posts the bearer token to /auth/logout and clears the local session.</p>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </DashboardLayout>

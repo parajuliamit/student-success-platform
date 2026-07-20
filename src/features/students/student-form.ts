@@ -9,7 +9,7 @@ export type StudentFormValues = {
 	name: string;
 	bannerId: string;
 	joinedYear: string;
-	course: string;
+	courseId: string;
 	dateOfBirth: string;
 	personalEmail: string;
 	phone: string;
@@ -43,7 +43,7 @@ export function createEmptyStudentFormValues(): StudentFormValues {
 		name: "",
 		bannerId: "",
 		joinedYear: String(new Date().getFullYear()),
-		course: "",
+		courseId: "",
 		dateOfBirth: "",
 		personalEmail: "",
 		phone: "",
@@ -71,7 +71,7 @@ export function createStudentFormValues(student: StudentRecord): StudentFormValu
 		name: student.name,
 		bannerId: student.banner_id,
 		joinedYear: String(student.joined_year),
-		course: student.course,
+		courseId: student.course ? String(student.course.id) : "",
 		dateOfBirth: student.date_of_birth ?? "",
 		personalEmail: student.personal_email ?? "",
 		phone: student.phone ?? "",
@@ -112,7 +112,7 @@ function parseRequiredNumber(value: string, label: string) {
 export function buildStudentPayload(values: StudentFormValues): StudentMutationInput {
 	const name = values.name.trim();
 	const bannerId = values.bannerId.trim();
-	const course = values.course.trim();
+	const courseId = values.courseId.trim();
 
 	if (!name) {
 		throw new Error("Student name is required.");
@@ -122,7 +122,7 @@ export function buildStudentPayload(values: StudentFormValues): StudentMutationI
 		throw new Error("Banner ID is required.");
 	}
 
-	if (!course) {
+	if (!courseId) {
 		throw new Error("Course is required.");
 	}
 
@@ -130,7 +130,7 @@ export function buildStudentPayload(values: StudentFormValues): StudentMutationI
 		name,
 		banner_id: bannerId,
 		joined_year: parseRequiredNumber(values.joinedYear, "Joined year"),
-		course,
+		course_id: parseRequiredNumber(courseId, "Course"),
 		date_of_birth: normalizeOptionalText(values.dateOfBirth),
 		personal_email: normalizeOptionalText(values.personalEmail),
 		phone: normalizeOptionalText(values.phone),

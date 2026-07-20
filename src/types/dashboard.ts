@@ -3,14 +3,14 @@ export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
 export interface DashboardStudent {
   id: string
   name: string
-  classId: string
-  className: string
+  courseId: string
+  courseName: string
   attendance: number
   riskScore: number
   riskLevel: RiskLevel
 }
 
-export interface DashboardClass {
+export interface DashboardCourse {
   id: string
   name: string
   instructor: string
@@ -40,5 +40,5 @@ export interface DashboardOverview {
   riskDistribution: RiskDistributionPoint[]
   recentAtRiskStudents: DashboardStudent[]
   students: DashboardStudent[]
-  classes: DashboardClass[]
+  courses: DashboardCourse[]
 }

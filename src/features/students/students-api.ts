@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "#/features/auth/auth-api";
+import type { CourseRecord } from "#/features/courses/courses-api";
 
 export interface StudentRiskProfile {
 	id: number;
@@ -27,7 +28,7 @@ export interface StudentRecord {
 	name: string;
 	banner_id: string;
 	joined_year: number;
-	course: string;
+	course: CourseRecord | null;
 	date_of_birth: string | null;
 	personal_email: string | null;
 	phone: string | null;
@@ -77,7 +78,7 @@ export interface StudentMutationInput {
 	name: string;
 	banner_id: string;
 	joined_year: number;
-	course: string;
+	course_id: number;
 	date_of_birth: string | null;
 	personal_email: string | null;
 	phone: string | null;
@@ -171,7 +172,7 @@ export async function fetchRiskCalculations(accessToken: string) {
 async function sendStudentMutation(
 	accessToken: string,
 	url: string,
-	method: "POST" | "PUT",
+	method: "POST" | "PATCH",
 	payload: StudentMutationInput,
 ) {
 	const response = await fetch(url, {
@@ -220,7 +221,7 @@ export async function updateStudent(
 	return sendStudentMutation(
 		accessToken,
 		`${API_BASE_URL}/students/${studentId}`,
-		"PUT",
+		"PATCH",
 		payload,
 	);
 }

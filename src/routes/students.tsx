@@ -22,6 +22,7 @@ import {
 } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
 import { useAuth } from "#/features/auth/auth-provider";
+import { fetchCourses } from "#/features/courses/courses-api";
 import {
 	createStudent,
 	fetchStudents,
@@ -63,6 +64,14 @@ function StudentsPage() {
 		queryFn: () => fetchStudents(token ?? ""),
 		enabled: Boolean(token),
 	});
+
+	const coursesQuery = useQuery({
+		queryKey: ["courses", token],
+		queryFn: () => fetchCourses(token ?? ""),
+		enabled: Boolean(token),
+	});
+
+	const courses = coursesQuery.data?.courses ?? [];
 
 	const students = studentsQuery.data?.students ?? [];
 	const selectedStudent = useMemo(
@@ -135,7 +144,7 @@ function StudentsPage() {
 			const haystack = [
 				student.name,
 				student.banner_id,
-				student.course,
+				student.course?.name,
 				student.city,
 				student.state,
 				student.personal_email,
@@ -270,6 +279,8 @@ function StudentsPage() {
 					open={isFormOpen}
 					mode={formMode}
 					values={formValues}
+					courses={courses}
+					isCoursesLoading={coursesQuery.isPending}
 					isSaving={isSaving}
 					errorMessage={formError ?? mutationError ?? null}
 					onOpenChange={(open) => {
@@ -390,7 +401,7 @@ function StudentsPage() {
 										<div>
 											<p className="font-medium">{student.name}</p>
 											<p className="text-sm text-muted-foreground">
-												{student.course} · {student.attendance.toFixed(1)}%
+												{student.course?.name ?? "Unassigned"} · {student.attendance.toFixed(1)}%
 												attendance · risk score {student.riskScore.toFixed(2)}
 											</p>
 										</div>
@@ -486,7 +497,7 @@ function StudentsPage() {
 										<div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-4 text-sm text-muted-foreground">
 											<div>
 												<p className="font-medium text-foreground">
-													{student.course}
+													{student.course?.name ?? "Unassigned"}
 												</p>
 												<p>{student.personal_email ?? "No email on record"}</p>
 											</div>
