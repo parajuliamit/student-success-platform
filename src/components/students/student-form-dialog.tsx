@@ -224,60 +224,126 @@ export function StudentFormDialog({
 
 							<section className="space-y-4">
 								<div>
-									<h3 className="text-sm font-semibold">Risk profile</h3>
+									<h3 className="text-sm font-semibold">Risk Profile - Academic Performance</h3>
 									<p className="text-sm text-muted-foreground">
-										These values feed attendance and risk calculations in the UI.
+										Academic indicators used in risk calculations.
 									</p>
 								</div>
 								<div className="grid gap-4 sm:grid-cols-2">
-									<FormField label="Study hours" htmlFor="student-study-hours">
-										<Input
+									<FormField label="Study hours per week" htmlFor="student-study-hours">
+										<select
 											id="student-study-hours"
-											type="number"
 											value={values.studyHours}
 											onChange={(event) =>
 												onValueChange("studyHours", event.target.value)
 											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
 											required
-										/>
+										>
+											<option value="">Select study hours</option>
+											<option value="0-5">0-5 hours</option>
+											<option value="5-10">5-10 hours</option>
+											<option value="10-15">10-15 hours</option>
+											<option value="15-20">15-20 hours</option>
+											<option value="20+">20+ hours</option>
+										</select>
 									</FormField>
-									<FormField label="Attendance %" htmlFor="student-attendance">
-										<Input
+									<FormField label="Attendance Rate" htmlFor="student-attendance">
+										<select
 											id="student-attendance"
-											type="number"
 											value={values.attendance}
 											onChange={(event) =>
 												onValueChange("attendance", event.target.value)
 											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
 											required
-										/>
+										>
+											<option value="">Select attendance</option>
+											<option value="0">0-25%</option>
+											<option value="25">25-50%</option>
+											<option value="50">50-75%</option>
+											<option value="75">75-90%</option>
+											<option value="90">90-100%</option>
+										</select>
 									</FormField>
-									<FormField label="Resources score" htmlFor="student-resources">
-										<Input
+									<FormField label="Learning Resources" htmlFor="student-resources">
+										<select
 											id="student-resources"
-											type="number"
 											value={values.resources}
 											onChange={(event) =>
 												onValueChange("resources", event.target.value)
 											}
-											required
-										/>
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+										>
+											<option value="0">No access to resources</option>
+											<option value="1">Limited resource access</option>
+											<option value="2">Full resource access</option>
+										</select>
 									</FormField>
-									<FormField label="Motivation score" htmlFor="student-motivation">
-										<Input
+									<FormField label="Academic Motivation" htmlFor="student-motivation">
+										<select
 											id="student-motivation"
-											type="number"
 											value={values.motivation}
 											onChange={(event) =>
 												onValueChange("motivation", event.target.value)
 											}
-											required
-										/>
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+										>
+											<option value="0">Low motivation</option>
+											<option value="1">Moderate motivation</option>
+											<option value="2">High motivation</option>
+										</select>
 									</FormField>
+									<FormField label="Online Courses Enrolled" htmlFor="student-online-courses">
+										<select
+											id="student-online-courses"
+											value={values.onlineCourses}
+											onChange={(event) =>
+												onValueChange("onlineCourses", event.target.value)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+											required
+										>
+											<option value="">Select online courses</option>
+											<option value="0">0-5 courses</option>
+											<option value="5">5-10 courses</option>
+											<option value="10">10-15 courses</option>
+											<option value="15">15-20 courses</option>
+										</select>
+									</FormField>
+									<FormField label="Assignment Completion Rate" htmlFor="student-assignments">
+										<select
+											id="student-assignments"
+											value={values.assignments}
+											onChange={(event) =>
+												onValueChange("assignments", event.target.value)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+											required
+										>
+											<option value="">Select completion rate</option>
+											<option value="0">0-25%</option>
+											<option value="25">25-50%</option>
+											<option value="50">50-75%</option>
+											<option value="75">75-100%</option>
+										</select>
+									</FormField>
+								</div>
+							</section>
+
+							<section className="space-y-4">
+								<div>
+									<h3 className="text-sm font-semibold">Risk Profile - Personal Information</h3>
+									<p className="text-sm text-muted-foreground">
+										Personal demographics and learning preferences.
+									</p>
+								</div>
+								<div className="grid gap-4 sm:grid-cols-2">
 									<FormField label="Age" htmlFor="student-age">
 										<Input
 											id="student-age"
 											type="number"
+											min="18"
 											value={values.age}
 											onChange={(event) =>
 												onValueChange("age", event.target.value)
@@ -301,7 +367,7 @@ export function StudentFormDialog({
 											<option value="female">Female</option>
 										</select>
 									</FormField>
-									<FormField label="Learning style" htmlFor="student-learning-style">
+									<FormField label="Learning Style" htmlFor="student-learning-style">
 										<select
 											id="student-learning-style"
 											value={values.learningStyle}
@@ -321,10 +387,19 @@ export function StudentFormDialog({
 										</select>
 									</FormField>
 								</div>
+							</section>
+
+							<section className="space-y-4">
+								<div>
+									<h3 className="text-sm font-semibold">Risk Profile - Behavioral & Environmental</h3>
+									<p className="text-sm text-muted-foreground">
+										Life situation and behavioral indicators.
+									</p>
+								</div>
 								<div className="grid gap-3 rounded-xl border border-border/60 bg-muted/20 p-4 sm:grid-cols-2">
 									<ToggleField
-										label="Extracurricular"
-										description="Student joins activities outside class."
+										label="Participates in Extracurricular"
+										description="Engages in campus activities"
 										checked={values.extracurricular}
 										onCheckedChange={(checked) =>
 											onValueChange("extracurricular", checked)
@@ -339,11 +414,19 @@ export function StudentFormDialog({
 										}
 									/>
 									<ToggleField
-										label="Online courses"
-										description="Currently enrolled in online modules."
-										checked={values.onlineCourses}
+										label="Discussions"
+										description="Participates in class discussions."
+										checked={values.discussions}
 										onCheckedChange={(checked) =>
-											onValueChange("onlineCourses", checked)
+											onValueChange("discussions", checked)
+										}
+									/>
+									<ToggleField
+										label="Education technology"
+										description="Comfortable using technology for learning."
+										checked={values.educationTechnology}
+										onCheckedChange={(checked) =>
+											onValueChange("educationTechnology", checked)
 										}
 									/>
 								</div>

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { PencilLine, Plus, School } from "lucide-react";
+import { AlertTriangle, PencilLine, Plus, School } from "lucide-react";
 import { useMemo, useState } from "react";
 import { DashboardLayout } from "#/components/layout/dashboard-layout";
 import { Button } from "#/components/ui/button";
@@ -20,27 +20,37 @@ import {
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
+import { filterCoursesByRole, filterStudentsByRole } from "#/lib/role-based-access";
 import { useAuth } from "#/features/auth/auth-provider";
 import {
 	createCourse,
 	fetchCourses,
 	updateCourse,
 	type CourseRecord,
+	type CourseMutationInput,
 } from "#/features/courses/courses-api";
 import { buildLiveStudentSummaries } from "#/features/students/student-insights";
 import { fetchStudents } from "#/features/students/students-api";
+import { listUsers } from "#/features/users/users-api";
 
 export const Route = createFileRoute("/courses")({
 	component: CoursesPage,
 });
 
 function CoursesPage() {
-	const { token } = useAuth();
+	const { token, user } = useAuth();
 	const queryClient = useQueryClient();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [editingCourse, setEditingCourse] = useState<CourseRecord | null>(null);
 	const [courseName, setCourseName] = useState("");
-	const [moduleCoordinator, setModuleCoordinator] = useState("");
+	const [moduleCoordinatorId, setModuleCoordinatorId] = useState<string>("");
 	const [formError, setFormError] = useState<string | null>(null);
 
 	const studentsQuery = useQuery({
@@ -55,9 +65,38 @@ function CoursesPage() {
 		enabled: Boolean(token),
 	});
 
+	const usersQuery = useQuery({
+		queryKey: ["users", token],
+		queryFn: () => listUsers(token ?? ""),
+		enabled: Boolean(token),
+	});
+
+	const allCourses = coursesQuery.data?.courses ?? [];
+	// Apply role-based filtering to courses
+	const courses = useMemo(
+		() => filterCoursesByRole(allCourses, user),
+		[allCourses, user],
+	);
+
+	// Apply role-based filtering to students
+	const allStudents = studentsQuery.data?.students ?? [];
+	const filteredStudents = useMemo(
+		() => filterStudentsByRole(allStudents, allCourses, user),
+		[allStudents, allCourses, user],
+	);
+
+	// Get staff users for coordinator selection
+	const staffUsers = useMemo(
+		() => (usersQuery.data?.users ?? []).filter((u) => u.role === "staff"),
+		[usersQuery.data?.users],
+	);
+
+	// Helper function to find user by ID
+	const getUserById = (id: number) => staffUsers.find((u) => u.id === id);
+
 	const studentSummaries = useMemo(
-		() => buildLiveStudentSummaries(studentsQuery.data?.students ?? []),
-		[studentsQuery.data?.students],
+		() => buildLiveStudentSummaries(filteredStudents),
+		[filteredStudents],
 	);
 
 	const statsByCourseId = useMemo(() => {
@@ -93,7 +132,6 @@ function CoursesPage() {
 		return stats;
 	}, [studentSummaries]);
 
-	const courses = coursesQuery.data?.courses ?? [];
 	const totalStudents = studentSummaries.length;
 	const activeCourses = courses.length;
 	const averageCourseSize = activeCourses === 0 ? 0 : totalStudents / activeCourses;
@@ -108,7 +146,7 @@ function CoursesPage() {
 		}).length;
 
 	const createCourseMutation = useMutation({
-		mutationFn: (payload: { name: string; module_coordinator: string }) =>
+		mutationFn: (payload: CourseMutationInput) =>
 			createCourse(token ?? "", payload),
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["courses"] });
@@ -122,7 +160,7 @@ function CoursesPage() {
 			payload,
 		}: {
 			courseId: number;
-			payload: { name: string; module_coordinator: string };
+			payload: CourseMutationInput;
 		}) => updateCourse(token ?? "", courseId, payload),
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["courses"] });
@@ -137,7 +175,7 @@ function CoursesPage() {
 	const openCreateDialog = () => {
 		setEditingCourse(null);
 		setCourseName("");
-		setModuleCoordinator("");
+		setModuleCoordinatorId("");
 		setFormError(null);
 		setIsDialogOpen(true);
 	};
@@ -145,7 +183,7 @@ function CoursesPage() {
 	const openEditDialog = (course: CourseRecord) => {
 		setEditingCourse(course);
 		setCourseName(course.name);
-		setModuleCoordinator(course.module_coordinator ?? "");
+		setModuleCoordinatorId(String(course.module_coordinator_id));
 		setFormError(null);
 		setIsDialogOpen(true);
 	};
@@ -154,7 +192,7 @@ function CoursesPage() {
 		setIsDialogOpen(false);
 		setEditingCourse(null);
 		setCourseName("");
-		setModuleCoordinator("");
+		setModuleCoordinatorId("");
 		setFormError(null);
 	};
 
@@ -162,20 +200,22 @@ function CoursesPage() {
 		event.preventDefault();
 		setFormError(null);
 
-		const payload = {
-			name: courseName.trim(),
-			module_coordinator: moduleCoordinator.trim(),
-		};
+		const coordinatorId = parseInt(moduleCoordinatorId, 10);
 
-		if (!payload.name) {
+		if (!courseName.trim()) {
 			setFormError("Course name is required.");
 			return;
 		}
 
-		if (!payload.module_coordinator) {
+		if (!moduleCoordinatorId || isNaN(coordinatorId)) {
 			setFormError("Module coordinator is required.");
 			return;
 		}
+
+		const payload: CourseMutationInput = {
+			name: courseName.trim(),
+			module_coordinator_id: coordinatorId,
+		};
 
 		try {
 			if (editingCourse) {
@@ -217,27 +257,34 @@ function CoursesPage() {
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="course-module-coordinator">
-								Module coordinator
-							</Label>
-							<Input
-								id="course-module-coordinator"
-								value={moduleCoordinator}
-								onChange={(event) => setModuleCoordinator(event.target.value)}
-								required
-							/>
+							<Label htmlFor="course-coordinator">Module coordinator</Label>
+							<Select value={moduleCoordinatorId} onValueChange={setModuleCoordinatorId}>
+								<SelectTrigger id="course-coordinator">
+									<SelectValue placeholder="Select a staff member" />
+								</SelectTrigger>
+								<SelectContent>
+									{staffUsers.map((staff) => (
+										<SelectItem key={staff.id} value={String(staff.id)}>
+											{staff.full_name} (@{staff.username})
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 
-						{formError || mutationError ? (
-							<p className="text-sm text-destructive">{formError ?? mutationError}</p>
+						{formError ? (
+							<div className="flex gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+								<AlertTriangle className="size-4 flex-shrink-0 mt-0.5" />
+								<span>{formError}</span>
+							</div>
 						) : null}
 
 						<DialogFooter>
 							<Button type="button" variant="outline" onClick={closeDialog}>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={isSaving}>
-								{isSaving
+							<Button type="submit" disabled={createCourseMutation.isPending || updateCourseMutation.isPending}>
+								{createCourseMutation.isPending || updateCourseMutation.isPending
 									? "Saving..."
 									: editingCourse
 										? "Save course"
@@ -290,44 +337,51 @@ function CoursesPage() {
 					</Button>
 				</CardHeader>
 				<CardContent className="grid gap-3 sm:grid-cols-3">
-					{courses.map((course) => {
-						const stats = statsByCourseId.get(course.id);
-						const studentCount = stats?.studentCount ?? 0;
-						const averageAttendance =
-							!stats || stats.studentCount === 0
-								? 0
-								: stats.attendanceTotal / stats.studentCount;
-						const highRiskCount = stats?.highRiskCount ?? 0;
+					{courses.length === 0 ? (
+						<p className="col-span-3 text-sm text-muted-foreground">
+							No courses available
+						</p>
+					) : (
+						courses.map((course) => {
+							const stats = statsByCourseId.get(course.id);
+							const studentCount = stats?.studentCount ?? 0;
+							const averageAttendance =
+								!stats || stats.studentCount === 0
+									? 0
+									: stats.attendanceTotal / stats.studentCount;
+							const highRiskCount = stats?.highRiskCount ?? 0;
+							const coordinator = getUserById(course.module_coordinator_id);
 
-						return (
-							<div
-								key={course.id}
-								className="rounded-xl border border-border/60 bg-muted/25 p-4"
-							>
-								<School className="size-5 text-primary" />
-								<p className="mt-2 font-medium">{course.name}</p>
-								<p className="mt-1 text-sm text-muted-foreground">
-									Coordinator: {course.module_coordinator}
-								</p>
-								<p className="mt-1 text-sm text-muted-foreground">
-									{studentCount} students · {averageAttendance.toFixed(1)}% attendance
-								</p>
-								<p className="mt-2 text-sm text-muted-foreground">
-									{highRiskCount} high-risk student{highRiskCount === 1 ? "" : "s"}
-								</p>
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									className="mt-3"
-									onClick={() => openEditDialog(course)}
+							return (
+								<div
+									key={course.id}
+									className="rounded-xl border border-border/60 bg-muted/25 p-4"
 								>
-									<PencilLine className="size-3.5" />
-									Edit
-								</Button>
-							</div>
-						);
-					})}
+									<School className="size-5 text-primary" />
+									<p className="mt-2 font-medium">{course.name}</p>
+									<p className="mt-1 text-sm text-muted-foreground">
+										Coordinator: {coordinator ? `${coordinator.full_name} (@${coordinator.username})` : "Unknown"}
+									</p>
+									<p className="mt-1 text-sm text-muted-foreground">
+										{studentCount} students · {averageAttendance.toFixed(1)}% attendance
+									</p>
+									<p className="mt-2 text-sm text-muted-foreground">
+										{highRiskCount} high-risk student{highRiskCount === 1 ? "" : "s"}
+									</p>
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										className="mt-3"
+										onClick={() => openEditDialog(course)}
+									>
+										<PencilLine className="size-3.5" />
+										Edit
+									</Button>
+								</div>
+							);
+						})
+					)}
 				</CardContent>
 			</Card>
 		</DashboardLayout>

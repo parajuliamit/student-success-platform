@@ -3,7 +3,7 @@ import { API_BASE_URL } from "#/features/auth/auth-api";
 export interface CourseRecord {
 	id: number;
 	name: string;
-	module_coordinator: string;
+	module_coordinator_id: number;
 	created_at?: string;
 	updated_at?: string;
 }
@@ -14,7 +14,7 @@ export interface CoursesResponse {
 
 export interface CourseMutationInput {
 	name: string;
-	module_coordinator: string;
+	module_coordinator_id: number;
 }
 
 function getErrorMessage(responseBody: unknown, fallback: string) {

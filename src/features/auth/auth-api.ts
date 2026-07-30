@@ -168,3 +168,63 @@ export async function logoutRequest(accessToken: string) {
 
   return responseBody as { message: string }
 }
+
+export interface ProfileUpdateRequest {
+  full_name?: string
+  email?: string
+}
+
+export interface PasswordChangeRequest {
+  current_password: string
+  new_password: string
+}
+
+export interface PasswordResetRequest {
+  password: string
+}
+
+export async function updateProfileRequest(
+  accessToken: string,
+  payload: ProfileUpdateRequest,
+) {
+  const response = await fetch(`${API_BASE_URL}/users/me`, {
+    method: 'PATCH',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const responseBody = await parseJsonResponse(response)
+
+  if (!response.ok) {
+    throw new Error(getErrorMessage(responseBody, 'Unable to update profile.'))
+  }
+
+  return responseBody as { message: string; user: AuthUser }
+}
+
+export async function changePasswordRequest(
+  accessToken: string,
+  payload: PasswordChangeRequest,
+) {
+  const response = await fetch(`${API_BASE_URL}/users/me/change-password`, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const responseBody = await parseJsonResponse(response)
+
+  if (!response.ok) {
+    throw new Error(getErrorMessage(responseBody, 'Unable to change password.'))
+  }
+
+  return responseBody as { message: string }
+}

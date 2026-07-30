@@ -7,6 +7,7 @@ import { RiskChart } from "#/components/dashboard/risk-chart";
 import { StatsCard } from "#/components/dashboard/stats-card";
 import { DashboardLayout } from "#/components/layout/dashboard-layout";
 import { StudentFormDialog } from "#/components/students/student-form-dialog";
+import { filterStudentsByRole } from "#/lib/role-based-access";
 import { useAuth } from "#/features/auth/auth-provider";
 import { fetchCourses } from "#/features/courses/courses-api";
 import {
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardPage() {
-	const { token } = useAuth();
+	const { token, user } = useAuth();
 	const queryClient = useQueryClient();
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
@@ -57,10 +58,17 @@ function DashboardPage() {
 
 	const courses = coursesQuery.data?.courses ?? [];
 
+	// Apply role-based filtering to students
+	const allStudents = studentsQuery.data?.students ?? [];
+	const filteredStudents = useMemo(
+		() => filterStudentsByRole(allStudents, courses, user),
+		[allStudents, courses, user],
+	);
+
 	const studentSummaries = useMemo(
 		() =>
-			buildLiveStudentSummaries(studentsQuery.data?.students ?? []),
-		[studentsQuery.data?.students],
+			buildLiveStudentSummaries(filteredStudents),
+		[filteredStudents],
 	);
 
 	const stats = useMemo(

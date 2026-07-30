@@ -18,6 +18,7 @@ import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
 
 const StudentsRoute = StudentsRouteImport.update({
   id: '/students',
@@ -64,6 +65,11 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/predictions': typeof PredictionsRoute
   '/profile': typeof ProfileRoute
   '/students': typeof StudentsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/predictions': typeof PredictionsRoute
   '/profile': typeof ProfileRoute
   '/students': typeof StudentsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/predictions': typeof PredictionsRoute
   '/profile': typeof ProfileRoute
   '/students': typeof StudentsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/predictions'
     | '/profile'
     | '/students'
+    | '/admin/users'
     | '/api/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/predictions'
     | '/profile'
     | '/students'
+    | '/admin/users'
     | '/api/$'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/predictions'
     | '/profile'
     | '/students'
+    | '/admin/users'
     | '/api/$'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   PredictionsRoute: typeof PredictionsRoute
   ProfileRoute: typeof ProfileRoute
   StudentsRoute: typeof StudentsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   ApiSplatRoute: typeof ApiSplatRoute
 }
 
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   PredictionsRoute: PredictionsRoute,
   ProfileRoute: ProfileRoute,
   StudentsRoute: StudentsRoute,
+  AdminUsersRoute: AdminUsersRoute,
   ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { CalendarDays, LogOut, Mail, RefreshCw, ShieldCheck, UserRound } from 'lucide-react'
+import { useState } from 'react'
+import { ChangePasswordDialog } from '#/components/auth/change-password-dialog'
 import { DashboardLayout } from '#/components/layout/dashboard-layout'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
@@ -11,7 +13,14 @@ export const Route = createFileRoute('/profile')({
 })
 
 function ProfilePage() {
-  const { user, refreshProfile, logout } = useAuth()
+  const { user, token, refreshProfile, logout } = useAuth()
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  const handlePasswordChangeSuccess = () => {
+    setSuccessMessage('Password changed successfully!')
+    setTimeout(() => setSuccessMessage(null), 3000)
+  }
 
   return (
     <DashboardLayout
@@ -87,9 +96,32 @@ function ProfilePage() {
         </Card>
 
         <div className="space-y-4">
+          {successMessage && (
+            <div className="rounded-lg border border-green-500/50 bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400">
+              {successMessage}
+            </div>
+          )}
+
           <Card className="rounded-2xl border-border/70 bg-card/90 shadow-sm">
             <CardHeader>
-              <CardTitle>Actions</CardTitle>
+              <CardTitle>Security</CardTitle>
+              <CardDescription>Update your password to keep your account secure.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={() => setIsPasswordDialogOpen(true)}
+              >
+                <ShieldCheck className="size-4" />
+                Change Password
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border-border/70 bg-card/90 shadow-sm">
+            <CardHeader>
+              <CardTitle>Session</CardTitle>
               <CardDescription>Re-check the login profile or end the session.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
@@ -105,6 +137,15 @@ function ProfilePage() {
           </Card>
         </div>
       </div>
+
+      {token && (
+        <ChangePasswordDialog
+          open={isPasswordDialogOpen}
+          onOpenChange={setIsPasswordDialogOpen}
+          accessToken={token}
+          onSuccess={handlePasswordChangeSuccess}
+        />
+      )}
     </DashboardLayout>
   )
 }

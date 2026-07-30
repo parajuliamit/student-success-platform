@@ -66,6 +66,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     '/settings',
     '/profile',
     '/login',
+    '/admin',
   ]
   const showMarketingShell = !appRoutePrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),

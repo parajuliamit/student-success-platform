@@ -11,6 +11,7 @@ import {
 	LayoutDashboard,
 	School,
 	ShieldAlert,
+	Users,
 } from "lucide-react";
 import { useMemo } from "react";
 import { Avatar, AvatarFallback } from "#/components/ui/avatar";
@@ -67,6 +68,10 @@ const navigationItems = [
 	{ label: "Predictions", href: "/predictions", icon: ShieldAlert },
 ] as const;
 
+const adminNavigationItems = [
+	{ label: "Users", href: "/admin/users", icon: Users },
+] as const;
+
 export function DashboardLayout({
 	title,
 	description,
@@ -80,6 +85,8 @@ export function DashboardLayout({
 
 	const currentLabel = useMemo(() => {
 		const matchedItem = navigationItems.find((item) =>
+			pathname.startsWith(item.href),
+		) || adminNavigationItems.find((item) =>
 			pathname.startsWith(item.href),
 		);
 		return matchedItem?.label ?? "Dashboard";
@@ -145,8 +152,38 @@ export function DashboardLayout({
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
+
+					{user?.role === "admin" && (
+						<>
+							<SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
+							<SidebarGroup>
+								<SidebarGroupLabel>Administration</SidebarGroupLabel>
+								<SidebarGroupContent>
+									<SidebarMenu>
+										{adminNavigationItems.map((item) => {
+											const isActive =
+												pathname === item.href ||
+												pathname.startsWith(`${item.href}/`);
+
+											return (
+												<SidebarMenuItem key={item.href}>
+													<SidebarMenuButton
+														render={<Link to={item.href} />}
+														isActive={isActive}
+														tooltip={item.label}
+													>
+														<item.icon />
+														<span>{item.label}</span>
+													</SidebarMenuButton>
+												</SidebarMenuItem>
+											);
+										})}
+									</SidebarMenu>
+								</SidebarGroupContent>
+							</SidebarGroup>
+						</>
+					)}
 				</SidebarContent>
-				<SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
 
 			</Sidebar>
 			<SidebarInset className="bg-transparent">
@@ -197,7 +234,6 @@ export function DashboardLayout({
 										<DropdownMenuItem render={<Link to="/profile" />}>
 											Profile
 										</DropdownMenuItem>
-										<DropdownMenuItem>Role settings</DropdownMenuItem>
 										<DropdownMenuSeparator />
 										<DropdownMenuItem
 											render={

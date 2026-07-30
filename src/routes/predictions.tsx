@@ -97,7 +97,7 @@ function PredictionsPage() {
 	return (
 		<DashboardLayout
 			title="Predictions"
-			description="Forecast risk and likely intervention outcomes using the live backend risk scores."
+			description="Forecast risk levels for students based on AI analysis of their overall performance, attendance, and engagement."
 		>
 			<div className="rounded-xl border border-border/70 bg-card/90 p-4 shadow-sm">
 				<div className="mb-4 flex items-start justify-between gap-3">
