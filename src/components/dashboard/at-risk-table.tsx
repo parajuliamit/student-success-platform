@@ -16,18 +16,11 @@ import {
 } from '#/components/ui/table'
 import { Button } from '#/components/ui/button'
 import type { LiveStudentSummary } from '#/features/students/student-insights'
-import type { RiskLevel } from '#/types/dashboard'
+import { riskStyles } from '#/features/students/student-insights'
 
 interface AtRiskTableProps {
   students: LiveStudentSummary[]
   onViewStudent: (student: LiveStudentSummary) => void
-}
-
-const riskStyles: Record<RiskLevel, string> = {
-  low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 uppercase',
-  medium: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 uppercase',
-  high: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 uppercase',
-  critical: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 uppercase',
 }
 
 export function AtRiskTable({ students, onViewStudent }: AtRiskTableProps) {

@@ -40,7 +40,7 @@ import {
 	type StudentFormMode,
 	type StudentFormValues,
 } from "#/features/students/student-form";
-import { getRiskLevel, getPrimaryRiskFactor } from "#/features/students/student-insights";
+import { getRiskLevel, getPrimaryRiskFactor, riskStyles } from "#/features/students/student-insights";
 
 type StudentRiskLevel = "low" | "medium" | "high" | "critical";
 
@@ -286,18 +286,6 @@ function StudentsPage() {
 	const mutationError =
 		createStudentMutation.error?.message ??
 		updateStudentMutation.error?.message;
-
-	const riskBadgeVariant = (riskLevel: StudentRiskLevel) => {
-		if (riskLevel === "critical" || riskLevel === "high") {
-			return "destructive" as const;
-		}
-
-		if (riskLevel === "medium") {
-			return "secondary" as const;
-		}
-
-		return "outline" as const;
-	};
 
 	const closeForm = () => {
 		setIsFormOpen(false);
@@ -692,7 +680,7 @@ function StudentsPage() {
 													{student.banner_id} · Joined {student.joined_year}
 												</p>
 											</div>
-											<Badge variant={riskBadgeVariant(student.riskLevel)}>
+										<Badge variant="secondary" className={riskStyles[student.riskLevel]}>
 												{student.riskLevel}
 											</Badge>
 										</div>

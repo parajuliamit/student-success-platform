@@ -34,6 +34,13 @@ const riskColors: Record<RiskLevel, string> = {
 	critical: "hsl(0 72% 55%)",
 };
 
+export const riskStyles: Record<RiskLevel, string> = {
+	low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 uppercase',
+	medium: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 uppercase',
+	high: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 uppercase',
+	critical: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 uppercase',
+};
+
 export function getRiskLevel(riskScore: number): RiskLevel {
 	const normalizedScore = Math.max(0, Math.min(3, Math.round(riskScore)));
 	const riskLevels: RiskLevel[] = ["low", "medium", "high", "critical"];

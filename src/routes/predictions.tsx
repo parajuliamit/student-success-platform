@@ -14,9 +14,8 @@ import {
 	TableRow,
 } from "#/components/ui/table";
 import { useAuth } from "#/features/auth/auth-provider";
-import { buildLiveStudentSummaries } from "#/features/students/student-insights";
+import { buildLiveStudentSummaries, riskStyles } from "#/features/students/student-insights";
 import { fetchStudents } from "#/features/students/students-api";
-import type { RiskLevel } from "#/types/dashboard";
 
 export const Route = createFileRoute("/predictions")({
 	component: PredictionsPage,
@@ -74,13 +73,6 @@ function PredictionsPage() {
 			}),
 		[sortDirection, sortKey, studentsQuery.data?.students],
 	);
-
-	const riskStyles: Record<RiskLevel, string> = {
-	  low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 uppercase',
-	  medium: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 uppercase',
-	  high: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 uppercase',
-	  critical: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 uppercase',
-	}
 
 	const toggleSort = (key: "name" | "course" | "attendance" | "risk" | "assignments") => {
 		if (sortKey === key) {
