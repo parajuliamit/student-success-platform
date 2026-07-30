@@ -126,7 +126,7 @@ export function getPrimaryRiskFactor(profile: StudentRiskProfile | null): Primar
 	}
 
 	// No internet connectivity (0 or 1)
-	if (profile.internet === 0) {
+	if (!profile.internet) {
 		factors.push({
 			factor: "Internet Access",
 			description: "No reliable internet access for online learning",
@@ -135,7 +135,7 @@ export function getPrimaryRiskFactor(profile: StudentRiskProfile | null): Primar
 	}
 
 	// Not engaging in discussions (0 or 1)
-	if (profile.discussions === 0) {
+	if (!profile.discussions) {
 		factors.push({
 			factor: "Class Engagement",
 			description: "Not participating in class discussions",
@@ -144,7 +144,7 @@ export function getPrimaryRiskFactor(profile: StudentRiskProfile | null): Primar
 	}
 
 	// No extracurricular involvement (0 or 1)
-	if (profile.extracurricular === 0) {
+	if (!profile.extracurricular) {
 		factors.push({
 			factor: "Extracurricular Engagement",
 			description: "No involvement in extracurricular activities",
@@ -153,7 +153,7 @@ export function getPrimaryRiskFactor(profile: StudentRiskProfile | null): Primar
 	}
 
 	// No education technology usage (0 or 1)
-	if (profile.education_technology === 0) {
+	if (!profile.education_technology) {
 		factors.push({
 			factor: "Technology Adoption",
 			description: "Limited use of educational technology tools",
