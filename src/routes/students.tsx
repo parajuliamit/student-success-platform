@@ -40,7 +40,7 @@ import {
 	type StudentFormMode,
 	type StudentFormValues,
 } from "#/features/students/student-form";
-import { getRiskLevel } from "#/features/students/student-insights";
+import { getRiskLevel, getPrimaryRiskFactor } from "#/features/students/student-insights";
 
 type StudentRiskLevel = "low" | "medium" | "high" | "critical";
 
@@ -153,6 +153,8 @@ function StudentsPage() {
 					attendance,
 					riskScore: Math.max(0, Math.min(3, riskScore)),
 					riskLevel,
+					displayId: `STD-${String(student.id).padStart(4, "0")}`,
+					primaryRiskFactor: getPrimaryRiskFactor(student.risk_profile),
 				};
 			}),
 		[students],
@@ -714,6 +716,20 @@ function StudentsPage() {
 												</span>
 											</div>
 										</div>
+
+										{student.riskLevel !== "low" && (
+											<div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+												<p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+													Primary Risk Factor
+												</p>
+												<p className="mt-1 text-sm font-medium text-foreground">
+													{student.primaryRiskFactor.factor}
+												</p>
+												<p className="mt-1 text-xs text-muted-foreground">
+													{student.primaryRiskFactor.description}
+												</p>
+											</div>
+										)}
 
 										<div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-4 text-sm text-muted-foreground">
 											<div>

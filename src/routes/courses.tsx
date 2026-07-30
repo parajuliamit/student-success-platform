@@ -50,7 +50,7 @@ function CoursesPage() {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [editingCourse, setEditingCourse] = useState<CourseRecord | null>(null);
 	const [courseName, setCourseName] = useState("");
-	const [moduleCoordinatorId, setModuleCoordinatorId] = useState<string>("");
+	const [moduleCoordinatorId, setModuleCoordinatorId] = useState<string | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
 
 	const studentsQuery = useQuery({
@@ -175,7 +175,7 @@ function CoursesPage() {
 	const openCreateDialog = () => {
 		setEditingCourse(null);
 		setCourseName("");
-		setModuleCoordinatorId("");
+		setModuleCoordinatorId(null);
 		setFormError(null);
 		setIsDialogOpen(true);
 	};
@@ -192,7 +192,7 @@ function CoursesPage() {
 		setIsDialogOpen(false);
 		setEditingCourse(null);
 		setCourseName("");
-		setModuleCoordinatorId("");
+		setModuleCoordinatorId(null);
 		setFormError(null);
 	};
 
@@ -200,15 +200,20 @@ function CoursesPage() {
 		event.preventDefault();
 		setFormError(null);
 
-		const coordinatorId = parseInt(moduleCoordinatorId, 10);
-
 		if (!courseName.trim()) {
 			setFormError("Course name is required.");
 			return;
 		}
 
-		if (!moduleCoordinatorId || isNaN(coordinatorId)) {
+		if (!moduleCoordinatorId) {
 			setFormError("Module coordinator is required.");
+			return;
+		}
+
+		const coordinatorId = parseInt(moduleCoordinatorId, 10);
+
+		if (isNaN(coordinatorId)) {
+			setFormError("Invalid module coordinator ID.");
 			return;
 		}
 
@@ -258,7 +263,7 @@ function CoursesPage() {
 						</div>
 						<div className="space-y-2">
 							<Label htmlFor="course-coordinator">Module coordinator</Label>
-							<Select value={moduleCoordinatorId} onValueChange={setModuleCoordinatorId}>
+							<Select value={moduleCoordinatorId ?? ""} onValueChange={(value) => setModuleCoordinatorId(value || null)}>
 								<SelectTrigger id="course-coordinator">
 									<SelectValue placeholder="Select a staff member" />
 								</SelectTrigger>
@@ -331,10 +336,12 @@ function CoursesPage() {
 							Manage course records through the dedicated courses API.
 						</CardDescription>
 					</div>
-					<Button type="button" onClick={openCreateDialog}>
-						<Plus className="size-4" />
-						Add course
-					</Button>
+					{user?.role === 'admin' && (
+						<Button type="button" onClick={openCreateDialog}>
+							<Plus className="size-4" />
+							Add course
+						</Button>
+					)}
 				</CardHeader>
 				<CardContent className="grid gap-3 sm:grid-cols-3">
 					{courses.length === 0 ? (

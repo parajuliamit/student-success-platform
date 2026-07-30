@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '#/features/auth/auth-api'
-import type { export export AuthUser } from '#/features/auth/auth-api'
+export type { AuthUser } from '#/features/auth/auth-api'
 
 export interface UserCreatePayload {
   username: string

@@ -157,6 +157,7 @@ function PredictionsPage() {
 									Assignments <ArrowUpDown className="ml-1 size-3.5" />
 								</Button>
 							</TableHead>
+							<TableHead>Primary Risk Factor</TableHead>
 							<TableHead>
 								<Button
 									variant="ghost"
@@ -176,6 +177,12 @@ function PredictionsPage() {
 								<TableCell>{student.course?.name ?? "Unassigned"}</TableCell>
 								<TableCell>{student.attendance.toFixed(1)}%</TableCell>
 								<TableCell>{student.risk_profile?.assignments ?? 0}%</TableCell>
+								<TableCell className="text-sm">
+									<div className="flex flex-col gap-0.5">
+										<span className="font-medium">{student.primaryRiskFactor.factor}</span>
+										<span className="text-xs text-muted-foreground">{student.primaryRiskFactor.description}</span>
+									</div>
+								</TableCell>
 								<TableCell>
 									<Badge
 										 variant="secondary" className={riskStyles[student.riskLevel]}
