@@ -26,6 +26,7 @@ interface StudentFormDialogProps {
 	isCoursesLoading: boolean;
 	isSaving: boolean;
 	errorMessage: string | null;
+	isViewMode?: boolean;
 	onOpenChange: (open: boolean) => void;
 	onCancel: () => void;
 	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -43,6 +44,7 @@ export function StudentFormDialog({
 	isCoursesLoading,
 	isSaving,
 	errorMessage,
+	isViewMode = false,
 	onOpenChange,
 	onCancel,
 	onSubmit,
@@ -53,11 +55,16 @@ export function StudentFormDialog({
 			<DialogContent className="w-[min(96vw,90rem)] max-h-[calc(100svh-2rem)] max-w-[90rem] overflow-hidden p-0 sm:w-[min(95vw,90rem)] sm:max-w-[90rem]">
 				<DialogHeader className="border-b border-border/60 px-4 py-4 sm:px-6 sm:py-5">
 					<DialogTitle>
-						{mode === "create" ? "Add student" : "Update student"}
-					</DialogTitle>
-					<DialogDescription>
-						Save student profile details and the live risk inputs used across
-						the dashboard.
+					{isViewMode
+						? "View student"
+						: mode === "create"
+							? "Add student"
+							: "Update student"}
+				</DialogTitle>
+				<DialogDescription>
+					{isViewMode
+						? "Student profile details and risk information."
+						: "Save student profile details and the live risk inputs used across the dashboard."}
 					</DialogDescription>
 				</DialogHeader>
 				<form
@@ -67,12 +74,6 @@ export function StudentFormDialog({
 					<div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
 						<div className="space-y-6">
 							<section className="space-y-4">
-								<div>
-									<h3 className="text-sm font-semibold">Student details</h3>
-									<p className="text-sm text-muted-foreground">
-										Core roster fields used across student views.
-									</p>
-								</div>
 								<div className="grid gap-4 sm:grid-cols-2">
 									<FormField label="Full name" htmlFor="student-name">
 										<Input
@@ -81,8 +82,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("name", event.target.value)
 											}
-											placeholder="Taylor Brooks"
-											required
+											placeholder="Taylor Brooks"										disabled={isViewMode}											required
 										/>
 									</FormField>
 									<FormField label="Banner ID" htmlFor="student-banner-id">
@@ -92,8 +92,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("bannerId", event.target.value)
 											}
-											placeholder="B00012345"
-											required
+											placeholder="B00012345"										disabled={isViewMode}											required
 										/>
 									</FormField>
 									<FormField label="Course" htmlFor="student-course">
@@ -104,7 +103,7 @@ export function StudentFormDialog({
 												onValueChange("courseId", event.target.value)
 											}
 											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-											disabled={isCoursesLoading || courses.length === 0}
+											disabled={isViewMode || isCoursesLoading || courses.length === 0}
 											required
 										>
 											<option value="" disabled>
@@ -129,6 +128,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("joinedYear", event.target.value)
 											}
+											disabled={isViewMode}
 											required
 										/>
 									</FormField>
@@ -140,6 +140,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("dateOfBirth", event.target.value)
 											}
+											disabled={isViewMode}
 										/>
 									</FormField>
 									<FormField label="Personal email" htmlFor="student-email">
@@ -150,8 +151,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("personalEmail", event.target.value)
 											}
-											placeholder="student@example.edu"
-										/>
+											placeholder="student@example.edu"										disabled={isViewMode}										/>
 									</FormField>
 									<FormField label="Phone" htmlFor="student-phone">
 										<Input
@@ -160,8 +160,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("phone", event.target.value)
 											}
-											placeholder="(555) 010-4400"
-										/>
+											placeholder="(555) 010-4400"										disabled={isViewMode}										/>
 									</FormField>
 									<FormField label="Address line 1" htmlFor="student-address-line1">
 										<Input
@@ -170,8 +169,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("addressLine1", event.target.value)
 											}
-											placeholder="123 Market Street"
-										/>
+											placeholder="123 Market Street"										disabled={isViewMode}										/>
 									</FormField>
 									<FormField label="Address line 2" htmlFor="student-address-line2">
 										<Input
@@ -180,8 +178,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("addressLine2", event.target.value)
 											}
-											placeholder="Apartment 4B"
-										/>
+											placeholder="Apartment 4B"										disabled={isViewMode}										/>
 									</FormField>
 									<FormField label="City" htmlFor="student-city">
 										<Input
@@ -189,8 +186,7 @@ export function StudentFormDialog({
 											value={values.city}
 											onChange={(event) =>
 												onValueChange("city", event.target.value)
-											}
-										/>
+											}										disabled={isViewMode}										/>
 									</FormField>
 									<FormField label="State" htmlFor="student-state">
 										<Input
@@ -198,8 +194,7 @@ export function StudentFormDialog({
 											value={values.state}
 											onChange={(event) =>
 												onValueChange("state", event.target.value)
-											}
-										/>
+											}										disabled={isViewMode}										/>
 									</FormField>
 									<FormField label="Country" htmlFor="student-country">
 										<Input
@@ -207,8 +202,7 @@ export function StudentFormDialog({
 											value={values.country}
 											onChange={(event) =>
 												onValueChange("country", event.target.value)
-											}
-										/>
+											}										disabled={isViewMode}										/>
 									</FormField>
 									<FormField label="Postal code" htmlFor="student-postal-code">
 										<Input
@@ -216,8 +210,7 @@ export function StudentFormDialog({
 											value={values.postalCode}
 											onChange={(event) =>
 												onValueChange("postalCode", event.target.value)
-											}
-										/>
+											}										disabled={isViewMode}										/>
 									</FormField>
 								</div>
 							</section>
@@ -238,6 +231,7 @@ export function StudentFormDialog({
 												onValueChange("studyHours", event.target.value)
 											}
 											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+											disabled={isViewMode}
 											required
 										>
 											<option value="">Select study hours</option>
@@ -255,8 +249,7 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("attendance", event.target.value)
 											}
-											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-											required
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}											required
 										>
 											<option value="">Select attendance</option>
 											<option value="0">0-25%</option>
@@ -274,7 +267,10 @@ export function StudentFormDialog({
 												onValueChange("resources", event.target.value)
 											}
 											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-										>
+										disabled={isViewMode}
+										required
+									>
+										<option value="">Select resources</option>
 											<option value="0">No access to resources</option>
 											<option value="1">Limited resource access</option>
 											<option value="2">Full resource access</option>
@@ -288,7 +284,10 @@ export function StudentFormDialog({
 												onValueChange("motivation", event.target.value)
 											}
 											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-										>
+										disabled={isViewMode}
+										required
+									>
+										<option value="">Select motivation</option>
 											<option value="0">Low motivation</option>
 											<option value="1">Moderate motivation</option>
 											<option value="2">High motivation</option>
@@ -301,8 +300,9 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("onlineCourses", event.target.value)
 											}
-											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-											required
+										className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+										disabled={isViewMode}
+										required
 										>
 											<option value="">Select online courses</option>
 											<option value="0">0-5 courses</option>
@@ -318,8 +318,9 @@ export function StudentFormDialog({
 											onChange={(event) =>
 												onValueChange("assignments", event.target.value)
 											}
-											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-											required
+										className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+										disabled={isViewMode}
+										required
 										>
 											<option value="">Select completion rate</option>
 											<option value="0">0-25%</option>
@@ -347,8 +348,7 @@ export function StudentFormDialog({
 											value={values.age}
 											onChange={(event) =>
 												onValueChange("age", event.target.value)
-											}
-											required
+											}												disabled={isViewMode}											required
 										/>
 									</FormField>
 									<FormField label="Gender" htmlFor="student-gender">
@@ -361,8 +361,7 @@ export function StudentFormDialog({
 													event.target.value as StudentFormValues["gender"],
 												)
 											}
-											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-										>
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}										>
 											<option value="male">Male</option>
 											<option value="female">Female</option>
 										</select>
@@ -377,8 +376,7 @@ export function StudentFormDialog({
 													event.target.value as StudentFormValues["learningStyle"],
 												)
 											}
-											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-										>
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}										>
 											{learningStyleOptions.map((option) => (
 												<option key={option} value={option}>
 													{option.replace("_", " ")}
@@ -401,6 +399,7 @@ export function StudentFormDialog({
 										label="Participates in Extracurricular"
 										description="Engages in campus activities"
 										checked={values.extracurricular}
+										disabled={isViewMode}
 										onCheckedChange={(checked) =>
 											onValueChange("extracurricular", checked)
 										}
@@ -409,6 +408,7 @@ export function StudentFormDialog({
 										label="Internet access"
 										description="Reliable access for coursework."
 										checked={values.internet}
+										disabled={isViewMode}
 										onCheckedChange={(checked) =>
 											onValueChange("internet", checked)
 										}
@@ -417,6 +417,7 @@ export function StudentFormDialog({
 										label="Discussions"
 										description="Participates in class discussions."
 										checked={values.discussions}
+										disabled={isViewMode}
 										onCheckedChange={(checked) =>
 											onValueChange("discussions", checked)
 										}
@@ -425,6 +426,7 @@ export function StudentFormDialog({
 										label="Education technology"
 										description="Comfortable using technology for learning."
 										checked={values.educationTechnology}
+										disabled={isViewMode}
 										onCheckedChange={(checked) =>
 											onValueChange("educationTechnology", checked)
 										}
@@ -442,8 +444,9 @@ export function StudentFormDialog({
 
 					<DialogFooter className="sticky bottom-0 z-10 border-t border-border/60 bg-popover px-4 py-4 sm:px-6 sm:py-5">
 						<Button type="button" variant="outline" onClick={onCancel}>
-							Cancel
-						</Button>
+						{isViewMode ? "Close" : "Cancel"}
+					</Button>
+					{!isViewMode && (
 						<Button type="submit" disabled={isSaving}>
 							{isSaving
 								? "Saving..."
@@ -451,6 +454,7 @@ export function StudentFormDialog({
 									? "Add student"
 									: "Save changes"}
 						</Button>
+					)}
 					</DialogFooter>
 				</form>
 			</DialogContent>
@@ -479,11 +483,13 @@ function ToggleField({
 	label,
 	description,
 	checked,
+	disabled,
 	onCheckedChange,
 }: {
 	label: string;
 	description: string;
 	checked: boolean;
+	disabled?: boolean;
 	onCheckedChange: (checked: boolean) => void;
 }) {
 	return (
@@ -492,7 +498,7 @@ function ToggleField({
 				<p className="text-sm font-medium">{label}</p>
 				<p className="text-sm text-muted-foreground">{description}</p>
 			</div>
-			<Switch checked={checked} onCheckedChange={onCheckedChange} />
+			<Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
 		</div>
 	);
 }

@@ -13,8 +13,10 @@ import {
 	Loader,
 	AlertCircle,
 	CheckCircle,
+	Clock,
+	Eye,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { StudentFormDialog } from "#/components/students/student-form-dialog";
 import { DashboardLayout } from "#/components/layout/dashboard-layout";
 import { Badge } from "#/components/ui/badge";
@@ -26,6 +28,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import { filterStudentsByRole } from "#/lib/role-based-access";
 import { useAuth } from "#/features/auth/auth-provider";
@@ -60,13 +70,13 @@ function StudentsPage() {
 	const [search, setSearch] = useState("");
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [formMode, setFormMode] = useState<StudentFormMode>("create");
-	const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
-		null,
-	);
+
 	const [formValues, setFormValues] = useState<StudentFormValues>(
 		createEmptyStudentFormValues(),
 	);
 	const [formError, setFormError] = useState<string | null>(null);
+	const [isViewMode, setIsViewMode] = useState(false);
+	const [viewingStudent, setViewingStudent] = useState<StudentRecord | null>(null);
 
 	// Pagination state
 	const [currentPage, setCurrentPage] = useState(1);
@@ -93,6 +103,63 @@ function StudentsPage() {
 	const [sendingEmailStudentId, setSendingEmailStudentId] = useState<
 		number | null
 	>(null);
+	const [lastBulkEmailTime, setLastBulkEmailTime] = useState<number | null>(
+		() => {
+			if (typeof window === "undefined") return null;
+			const stored = localStorage.getItem("lastBulkEmailTime");
+			return stored ? parseInt(stored, 10) : null;
+		},
+	);
+	const [timeUntilNextBulkEmail, setTimeUntilNextBulkEmail] = useState<number>(0);
+	const [showBulkEmailConfirmation, setShowBulkEmailConfirmation] = useState<boolean>(false);
+	const [criticalStudentCountForConfirm, setCriticalStudentCountForConfirm] = useState<number>(0);
+	const [showIndividualEmailConfirmation, setShowIndividualEmailConfirmation] = useState<boolean>(false);
+	const [confirmingStudentId, setConfirmingStudentId] = useState<number | null>(null);
+	const [confirmingStudentName, setConfirmingStudentName] = useState<string>("");
+	const [emailSendSuccess, setEmailSendSuccess] = useState<boolean>(false);
+	const [emailSendError, setEmailSendError] = useState<string | null>(null);
+
+	// Timer for bulk email cooldown
+	useEffect(() => {
+		if (!lastBulkEmailTime) {
+			setTimeUntilNextBulkEmail(0);
+			return;
+		}
+
+		const updateTimer = () => {
+			const now = Date.now();
+			const oneDay = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+			const timeSinceLastEmail = now - lastBulkEmailTime;
+			const timeRemaining = Math.max(0, oneDay - timeSinceLastEmail);
+
+			setTimeUntilNextBulkEmail(timeRemaining);
+
+			if (timeRemaining === 0) {
+				setLastBulkEmailTime(null);
+				localStorage.removeItem("lastBulkEmailTime");
+			}
+		};
+
+		updateTimer();
+		const interval = setInterval(updateTimer, 1000);
+
+		return () => clearInterval(interval);
+	}, [lastBulkEmailTime]);
+
+	const formatTimeRemaining = (ms: number) => {
+		const totalSeconds = Math.floor(ms / 1000);
+		const hours = Math.floor(totalSeconds / 3600);
+		const minutes = Math.floor((totalSeconds % 3600) / 60);
+		const seconds = totalSeconds % 60;
+
+		if (hours > 0) {
+			return `${hours}h ${minutes}m`;
+		}
+		if (minutes > 0) {
+			return `${minutes}m ${seconds}s`;
+		}
+		return `${seconds}s`;
+	};
 
 	const studentsQuery = useQuery({
 		queryKey: ["students", token],
@@ -114,14 +181,7 @@ function StudentsPage() {
 		() => filterStudentsByRole(allStudents, courses, user),
 		[allStudents, courses, user],
 	);
-	const selectedStudent = useMemo(
-		() =>
-			selectedStudentId == null
-				? null
-				: (students.find((student) => student.id === selectedStudentId) ??
-					null),
-		[selectedStudentId, students],
-	);
+
 
 	const createStudentMutation = useMutation({
 		mutationFn: (payload: StudentMutationInput) =>
@@ -131,7 +191,6 @@ function StudentsPage() {
 				queryClient.invalidateQueries({ queryKey: ["students"] }),
 			]);
 			setIsFormOpen(false);
-			setSelectedStudentId(null);
 			setFormValues(createEmptyStudentFormValues());
 			setFormError(null);
 		},
@@ -150,7 +209,6 @@ function StudentsPage() {
 				queryClient.invalidateQueries({ queryKey: ["students"] }),
 			]);
 			setIsFormOpen(false);
-			setSelectedStudentId(null);
 			setFormValues(createEmptyStudentFormValues());
 			setFormError(null);
 		},
@@ -161,19 +219,13 @@ function StudentsPage() {
 			sendAtRiskEmail(token ?? "", studentId),
 		onSuccess: () => {
 			setSendingEmailStudentId(null);
-			setEmailNotification({
-				type: "success",
-				message: "At-risk email sent successfully",
-			});
-			setTimeout(() => setEmailNotification(null), 3000);
+			setEmailSendSuccess(true);
+			setEmailSendError(null);
 		},
 		onError: (error: Error) => {
 			setSendingEmailStudentId(null);
-			setEmailNotification({
-				type: "error",
-				message: error.message || "Failed to send email",
-			});
-			setTimeout(() => setEmailNotification(null), 5000);
+			setEmailSendError(error.message || "Failed to send email");
+			setEmailSendSuccess(false);
 		},
 	});
 
@@ -181,6 +233,9 @@ function StudentsPage() {
 		mutationFn: (studentIds: number[]) =>
 			sendBulkAtRiskEmails(token ?? "", { student_ids: studentIds }),
 		onSuccess: (data) => {
+			const now = Date.now();
+			setLastBulkEmailTime(now);
+			localStorage.setItem("lastBulkEmailTime", String(now));
 			setEmailNotification({
 				type: "success",
 				message: `Sent emails to ${data.sent_count} student(s)`,
@@ -345,23 +400,32 @@ function StudentsPage() {
 	const closeForm = () => {
 		setIsFormOpen(false);
 		setFormError(null);
-		setSelectedStudentId(null);
 		setFormValues(createEmptyStudentFormValues());
+		setIsViewMode(false);
 	};
 
 	const openCreateForm = () => {
 		setFormMode("create");
-		setSelectedStudentId(null);
 		setFormValues(createEmptyStudentFormValues());
 		setFormError(null);
+		setIsViewMode(false);
 		setIsFormOpen(true);
 	};
 
 	const openEditForm = (student: StudentRecord) => {
 		setFormMode("edit");
-		setSelectedStudentId(student.id);
 		setFormValues(createStudentFormValues(student));
 		setFormError(null);
+		setIsViewMode(false);
+		setIsFormOpen(true);
+	};
+
+	const openViewStudent = (student: StudentRecord) => {
+		setViewingStudent(student);
+		setFormValues(createStudentFormValues(student));
+		setFormError(null);
+		setFormMode("edit");
+		setIsViewMode(true);
 		setIsFormOpen(true);
 	};
 
@@ -379,6 +443,11 @@ function StudentsPage() {
 		event.preventDefault();
 		setFormError(null);
 
+		if (isViewMode) {
+			closeForm();
+			return;
+		}
+
 		try {
 			const payload = buildStudentPayload(formValues);
 
@@ -387,12 +456,16 @@ function StudentsPage() {
 				return;
 			}
 
-			if (selectedStudentId == null) {
+			if (formMode !== "edit") {
 				throw new Error("Select a student before updating.");
 			}
 
+			if (viewingStudent == null) {
+				throw new Error("No student selected for editing.");
+			}
+
 			await updateStudentMutation.mutateAsync({
-				studentId: selectedStudentId,
+				studentId: viewingStudent.id,
 				payload,
 			});
 		} catch (submissionError) {
@@ -434,13 +507,13 @@ function StudentsPage() {
 					courses={courses}
 					isCoursesLoading={coursesQuery.isPending}
 					isSaving={isSaving}
+					isViewMode={isViewMode}
 					errorMessage={formError ?? mutationError ?? null}
 					onOpenChange={(open) => {
 						if (open) {
 							setIsFormOpen(true);
 							return;
 						}
-
 						closeForm();
 					}}
 					onCancel={closeForm}
@@ -448,18 +521,203 @@ function StudentsPage() {
 					onValueChange={handleFormValueChange}
 				/>
 
+				<Dialog open={showBulkEmailConfirmation} onOpenChange={setShowBulkEmailConfirmation}>
+					<DialogContent className="sm:max-w-[425px]">
+						<DialogHeader>
+							<DialogTitle>Send emails to critically at-risk students?</DialogTitle>
+							<DialogDescription>
+								This will send at-risk notification emails to {criticalStudentCountForConfirm} student{criticalStudentCountForConfirm !== 1 ? "s" : ""}.
+								<br />
+								<br />
+								Note: You can only send these emails once per day.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter className="pt-4">
+							<Button
+								variant="outline"
+								onClick={() => setShowBulkEmailConfirmation(false)}
+								type="button"
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={() => {
+									const criticalStudents = filteredAndSortedStudents.filter(
+										(s) => s.riskLevel === "critical",
+									);
+									sendBulkEmailMutation.mutate(
+										criticalStudents.map((s) => s.id),
+									);
+									setShowBulkEmailConfirmation(false);
+								}}
+								type="button"
+								disabled={sendBulkEmailMutation.isPending}
+							>
+								{sendBulkEmailMutation.isPending ? (
+									<>
+										<Loader className="size-4 animate-spin" />
+										Sending...
+									</>
+								) : (
+									<>
+										<Mail className="size-4" />
+										Send Emails
+									</>
+								)}
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+
+				<Dialog open={showIndividualEmailConfirmation} onOpenChange={(open) => {
+					if (!open) {
+						setShowIndividualEmailConfirmation(false);
+						setEmailSendSuccess(false);
+						setEmailSendError(null);
+					}
+				}}>
+					<DialogContent className="sm:max-w-[425px]">
+						{emailSendSuccess ? (
+							<>
+								<DialogHeader>
+									<DialogTitle className="flex items-center gap-2">
+										<CheckCircle className="size-5 text-emerald-600" />
+										Email sent successfully
+									</DialogTitle>
+								</DialogHeader>
+								<div className="space-y-4 py-4">
+									<p className="text-sm text-muted-foreground">
+										The at-risk notification email has been sent to {confirmingStudentName}.
+									</p>
+								</div>
+								<DialogFooter>
+									<Button
+										onClick={() => {
+											setShowIndividualEmailConfirmation(false);
+											setEmailSendSuccess(false);
+											setEmailSendError(null);
+										}}
+										type="button"
+									>
+										Close
+									</Button>
+								</DialogFooter>
+							</>
+						) : emailSendError ? (
+							<>
+								<DialogHeader>
+									<DialogTitle className="flex items-center gap-2">
+										<AlertCircle className="size-5 text-rose-600" />
+										Failed to send email
+									</DialogTitle>
+								</DialogHeader>
+								<div className="space-y-4 py-4">
+									<div className="rounded-lg border border-rose-200 bg-rose-50 p-3 dark:border-rose-800 dark:bg-rose-950">
+										<p className="text-sm text-rose-800 dark:text-rose-300">
+											{emailSendError}
+										</p>
+									</div>
+								</div>
+								<DialogFooter className="gap-2">
+									<Button
+										variant="outline"
+										onClick={() => {
+											setEmailSendError(null);
+											setShowIndividualEmailConfirmation(false);
+										}}
+										type="button"
+									>
+										Cancel
+									</Button>
+									<Button
+										onClick={() => {
+											if (confirmingStudentId !== null) {
+												setEmailSendError(null);
+												sendEmailMutation.mutate(confirmingStudentId);
+											}
+										}}
+										type="button"
+										disabled={sendEmailMutation.isPending}
+									>
+										{sendEmailMutation.isPending ? (
+											<>
+												<Loader className="size-4 animate-spin" />
+												Retrying...
+											</>
+										) : (
+											<>
+												<Mail className="size-4" />
+												Try Again
+											</>
+										)}
+									</Button>
+								</DialogFooter>
+							</>
+						) : (
+							<>
+								<DialogHeader>
+									<DialogTitle>Send at-risk email to {confirmingStudentName}?</DialogTitle>
+									<DialogDescription>
+										{sendEmailMutation.isPending
+											? "Sending email..."
+											: "This will send an at-risk notification email to this student."}
+									</DialogDescription>
+								</DialogHeader>
+								{sendEmailMutation.isPending && (
+									<div className="space-y-3 py-4">
+										<div className="flex items-center justify-center gap-2">
+											<Loader className="size-5 animate-spin text-primary" />
+											<span className="text-sm font-medium">Sending email...</span>
+										</div>
+									</div>
+								)}
+								<DialogFooter className="pt-4">
+									<Button
+										variant="outline"
+										onClick={() => setShowIndividualEmailConfirmation(false)}
+										type="button"
+										disabled={sendEmailMutation.isPending}
+									>
+										Cancel
+									</Button>
+									<Button
+										onClick={() => {
+											if (confirmingStudentId !== null) {
+												sendEmailMutation.mutate(confirmingStudentId);
+											}
+										}}
+										type="button"
+										disabled={sendEmailMutation.isPending}
+									>
+										{sendEmailMutation.isPending ? (
+											<>
+												<Loader className="size-4 animate-spin" />
+												Sending...
+											</>
+										) : (
+											<>
+												<Mail className="size-4" />
+												Send Email
+											</>
+										)}
+									</Button>
+								</DialogFooter>
+							</>
+						)}
+					</DialogContent>
+				</Dialog>
+
 				<Card className="rounded-xl border-border/70 bg-card/90 shadow-sm">
 					<CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
 						<div>
-							<CardTitle>Student Operations</CardTitle>
+							<CardTitle>Manage students</CardTitle>
 							<CardDescription>
-								Create a new student record or update an existing one with the
-								live API-backed form.
+								Create new student records, edit details, or send emails to at-risk students.
 							</CardDescription>
 						</div>
-						<div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-80">
+						<div className="flex w-full flex-row items-center gap-2 sm:w-auto">
 							<Button
-								className="rounded-xl"
+								className="rounded-xl flex flex-row items-center gap-2 px-3 py-2 text-sm"
 								onClick={openCreateForm}
 								type="button"
 							>
@@ -468,66 +726,43 @@ function StudentsPage() {
 							</Button>
 							<Button
 								variant="outline"
-								className="rounded-xl"
-								type="button"
-								disabled={selectedStudent == null}
-								onClick={() => {
-									if (selectedStudent) {
-										openEditForm(selectedStudent);
-									}
-								}}
-							>
-								<PencilLine className="size-4" />
-								Update selected student
-							</Button>
-							<Button
-								variant="outline"
-								className="rounded-xl"
+								className="rounded-xl flex flex-row items-center gap-2 px-3 py-2 text-sm"
 								type="button"
 								disabled={
 									filteredAndSortedStudents.filter(
-										(s) => s.riskLevel === "high" || s.riskLevel === "critical",
-									).length === 0 || sendBulkEmailMutation.isPending
+										(s) => s.riskLevel === "critical",
+									).length === 0 || sendBulkEmailMutation.isPending || timeUntilNextBulkEmail > 0
+								}
+								title={
+									timeUntilNextBulkEmail > 0
+										? `Available again in ${formatTimeRemaining(timeUntilNextBulkEmail)}`
+										: undefined
 								}
 								onClick={() => {
-									const atRiskStudents = filteredAndSortedStudents.filter(
-										(s) => s.riskLevel === "high" || s.riskLevel === "critical",
+									const criticalStudents = filteredAndSortedStudents.filter(
+										(s) => s.riskLevel === "critical",
 									);
-									sendBulkEmailMutation.mutate(
-										atRiskStudents.map((s) => s.id),
-									);
+									setCriticalStudentCountForConfirm(criticalStudents.length);
+									setShowBulkEmailConfirmation(true);
 								}}
 							>
 								{sendBulkEmailMutation.isPending ? (
 									<Loader className="size-4 animate-spin" />
+								) : timeUntilNextBulkEmail > 0 ? (
+									<>
+										<Clock className="size-4" />
+										{formatTimeRemaining(timeUntilNextBulkEmail)}
+									</>
 								) : (
-									<Mail className="size-4" />
+									<>
+										<Mail className="size-4" />
+										Send email to all critically at-risk
+									</>
 								)}
-								Send bulk emails
 							</Button>
 						</div>
 					</CardHeader>
-					<CardContent className="grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
-						<div className="rounded-xl border border-border/60 bg-muted/20 p-4">
-							<p className="text-sm font-medium text-foreground">
-								Create records
-							</p>
-							<p className="mt-1 text-sm text-muted-foreground">
-								Capture roster details, contact information, and the risk
-								profile used throughout the dashboard.
-							</p>
-						</div>
-						<div className="rounded-xl border border-border/60 bg-muted/20 p-4">
-							<p className="text-sm font-medium text-foreground">
-								Update records
-							</p>
-							<p className="mt-1 text-sm text-muted-foreground">
-								{selectedStudent
-									? `Selected: ${selectedStudent.name} (${selectedStudent.banner_id})`
-									: "Select a student card below to stage an edit, or use the inline Edit button."}
-							</p>
-						</div>
-					</CardContent>
+					
 				</Card>
 
 				<Card className="rounded-xl border-border/70 bg-card/90 shadow-sm">
@@ -762,11 +997,7 @@ function StudentsPage() {
 								{filteredStudents.map((student) => (
 									<article
 										key={student.id}
-										className={
-											student.id === selectedStudentId
-												? "rounded-2xl border border-primary/50 bg-primary/5 p-4 shadow-sm transition-colors"
-												: "rounded-2xl border border-border/60 bg-muted/20 p-4 shadow-sm transition-colors hover:bg-muted/30"
-										}
+										className="rounded-2xl border border-border/60 bg-muted/20 p-4 shadow-sm transition-colors hover:bg-muted/30"
 									>
 										<div className="flex items-start justify-between gap-3">
 											<div>
@@ -832,8 +1063,11 @@ function StudentsPage() {
 														type="button"
 														disabled={sendingEmailStudentId === student.id}
 														onClick={() => {
-															setSendingEmailStudentId(student.id);
-															sendEmailMutation.mutate(student.id);
+															setConfirmingStudentId(student.id);
+															setConfirmingStudentName(student.name);
+															setEmailSendSuccess(false);
+															setEmailSendError(null);
+															setShowIndividualEmailConfirmation(true);
 														}}
 													>
 														{sendingEmailStudentId === student.id ? (
@@ -845,19 +1079,14 @@ function StudentsPage() {
 													</Button>
 												)}
 												<Button
-													variant={
-														student.id === selectedStudentId
-															? "secondary"
-															: "ghost"
-													}
+													variant="outline"
 													size="sm"
 													className="rounded-xl"
 													type="button"
-													onClick={() => setSelectedStudentId(student.id)}
+													onClick={() => openViewStudent(student)}
 												>
-													{student.id === selectedStudentId
-														? "Selected"
-														: "Select"}
+													<Eye className="size-3.5" />
+													View
 												</Button>
 												<Button
 													variant="outline"

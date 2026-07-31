@@ -12,7 +12,7 @@ const config = defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://mscproject.tuckersmile.com',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
