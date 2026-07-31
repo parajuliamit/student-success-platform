@@ -39,13 +39,37 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         name: 'description',
         content:
-          'Institutional dashboard for academic staff to monitor student performance, risk, and intervention signals.',
+          'Institutional dashboard for academic staff to monitor student performance, identify at-risk students, and drive academic success through data-driven insights.',
+      },
+      {
+        name: 'theme-color',
+        content: '#4fb8b2',
+      },
+      {
+        name: 'apple-mobile-web-app-capable',
+        content: 'yes',
+      },
+      {
+        name: 'apple-mobile-web-app-status-bar-style',
+        content: 'black-translucent',
+      },
+      {
+        name: 'apple-mobile-web-app-title',
+        content: 'Student Success',
       },
     ],
     links: [
       {
         rel: 'stylesheet',
         href: appCss,
+      },
+      {
+        rel: 'icon',
+        href: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect fill="%234fb8b2" width="180" height="180"/><path fill="white" d="M90 30c-33.14 0-60 26.86-60 60s26.86 60 60 60 60-26.86 60-60-26.86-60-60-60zm0 108c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm23-68H90V55h23v15zm-30 0H60V55h23v15zm15 35h-15v12c0 3.31 2.69 6 6 6h3c3.31 0 6-2.69 6-6v-12zm30 0h-15v12c0 3.31 2.69 6 6 6h3c3.31 0 6-2.69 6-6v-12z"/></svg>',
+      },
+      {
+        rel: 'apple-touch-icon',
+        href: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect fill="%234fb8b2" width="180" height="180"/><path fill="white" d="M90 30c-33.14 0-60 26.86-60 60s26.86 60 60 60 60-26.86 60-60-26.86-60-60-60zm0 108c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm23-68H90V55h23v15zm-30 0H60V55h23v15zm15 35h-15v12c0 3.31 2.69 6 6 6h3c3.31 0 6-2.69 6-6v-12zm30 0h-15v12c0 3.31 2.69 6 6 6h3c3.31 0 6-2.69 6-6v-12z"/></svg>',
       },
     ],
   }),
