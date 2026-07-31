@@ -9,6 +9,10 @@ import {
 	ShieldAlert,
 	ChevronUp,
 	ChevronDown,
+	Mail,
+	Loader,
+	AlertCircle,
+	CheckCircle,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { StudentFormDialog } from "#/components/students/student-form-dialog";
@@ -32,6 +36,8 @@ import {
 	type StudentMutationInput,
 	type StudentRecord,
 	updateStudent,
+	sendAtRiskEmail,
+	sendBulkAtRiskEmails,
 } from "#/features/students/students-api";
 import {
 	buildStudentPayload,
@@ -78,6 +84,15 @@ function StudentsPage() {
 	const [attendanceMax, setAttendanceMax] = useState<string>("");
 	const [selectedRiskLevel, setSelectedRiskLevel] = useState<StudentRiskLevel | "all">("all");
 	const [selectedLearningStyle, setSelectedLearningStyle] = useState<string>("");
+
+	// Email notification state
+	const [emailNotification, setEmailNotification] = useState<{
+		type: "success" | "error";
+		message: string;
+	} | null>(null);
+	const [sendingEmailStudentId, setSendingEmailStudentId] = useState<
+		number | null
+	>(null);
 
 	const studentsQuery = useQuery({
 		queryKey: ["students", token],
@@ -138,6 +153,46 @@ function StudentsPage() {
 			setSelectedStudentId(null);
 			setFormValues(createEmptyStudentFormValues());
 			setFormError(null);
+		},
+	});
+
+	const sendEmailMutation = useMutation({
+		mutationFn: (studentId: number) =>
+			sendAtRiskEmail(token ?? "", studentId),
+		onSuccess: () => {
+			setSendingEmailStudentId(null);
+			setEmailNotification({
+				type: "success",
+				message: "At-risk email sent successfully",
+			});
+			setTimeout(() => setEmailNotification(null), 3000);
+		},
+		onError: (error: Error) => {
+			setSendingEmailStudentId(null);
+			setEmailNotification({
+				type: "error",
+				message: error.message || "Failed to send email",
+			});
+			setTimeout(() => setEmailNotification(null), 5000);
+		},
+	});
+
+	const sendBulkEmailMutation = useMutation({
+		mutationFn: (studentIds: number[]) =>
+			sendBulkAtRiskEmails(token ?? "", { student_ids: studentIds }),
+		onSuccess: (data) => {
+			setEmailNotification({
+				type: "success",
+				message: `Sent emails to ${data.sent_count} student(s)`,
+			});
+			setTimeout(() => setEmailNotification(null), 3000);
+		},
+		onError: (error: Error) => {
+			setEmailNotification({
+				type: "error",
+				message: error.message || "Failed to send bulk emails",
+			});
+			setTimeout(() => setEmailNotification(null), 5000);
 		},
 	});
 
@@ -355,6 +410,23 @@ function StudentsPage() {
 			description="Review live student records, attendance signals, and current risk calculations."
 		>
 			<div className="space-y-4">
+				{emailNotification && (
+					<div
+						className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
+							emailNotification.type === "success"
+								? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+								: "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-300"
+						}`}
+					>
+						{emailNotification.type === "success" ? (
+							<CheckCircle className="size-5 shrink-0" />
+						) : (
+							<AlertCircle className="size-5 shrink-0" />
+						)}
+						<span className="text-sm font-medium">{emailNotification.message}</span>
+					</div>
+				)}
+
 				<StudentFormDialog
 					open={isFormOpen}
 					mode={formMode}
@@ -407,6 +479,31 @@ function StudentsPage() {
 							>
 								<PencilLine className="size-4" />
 								Update selected student
+							</Button>
+							<Button
+								variant="outline"
+								className="rounded-xl"
+								type="button"
+								disabled={
+									filteredAndSortedStudents.filter(
+										(s) => s.riskLevel === "high" || s.riskLevel === "critical",
+									).length === 0 || sendBulkEmailMutation.isPending
+								}
+								onClick={() => {
+									const atRiskStudents = filteredAndSortedStudents.filter(
+										(s) => s.riskLevel === "high" || s.riskLevel === "critical",
+									);
+									sendBulkEmailMutation.mutate(
+										atRiskStudents.map((s) => s.id),
+									);
+								}}
+							>
+								{sendBulkEmailMutation.isPending ? (
+									<Loader className="size-4 animate-spin" />
+								) : (
+									<Mail className="size-4" />
+								)}
+								Send bulk emails
 							</Button>
 						</div>
 					</CardHeader>
@@ -727,6 +824,26 @@ function StudentsPage() {
 												<p>{student.personal_email ?? "No email on record"}</p>
 											</div>
 											<div className="flex items-center gap-2">
+												{(student.riskLevel === "high" || student.riskLevel === "critical") && (
+													<Button
+														variant="outline"
+														size="sm"
+														className="rounded-xl"
+														type="button"
+														disabled={sendingEmailStudentId === student.id}
+														onClick={() => {
+															setSendingEmailStudentId(student.id);
+															sendEmailMutation.mutate(student.id);
+														}}
+													>
+														{sendingEmailStudentId === student.id ? (
+															<Loader className="size-3.5 animate-spin" />
+														) : (
+															<Mail className="size-3.5" />
+														)}
+														Email
+													</Button>
+												)}
 												<Button
 													variant={
 														student.id === selectedStudentId

@@ -225,3 +225,76 @@ export async function updateStudent(
 		payload,
 	);
 }
+
+export interface SendAtRiskEmailRequest {
+	message?: string;
+}
+
+export interface SendAtRiskEmailResponse {
+	success: boolean;
+	message: string;
+}
+
+export interface SendBulkAtRiskEmailRequest {
+	student_ids: number[];
+	message?: string;
+}
+
+export interface SendBulkAtRiskEmailResponse {
+	success: boolean;
+	message: string;
+	sent_count: number;
+	failed_count: number;
+	results?: Record<string, unknown>;
+}
+
+export async function sendAtRiskEmail(
+	accessToken: string,
+	studentId: number,
+	payload?: SendAtRiskEmailRequest,
+) {
+	const response = await fetch(`${API_BASE_URL}/students/${studentId}/send-at-risk-email`, {
+		method: "POST",
+		headers: {
+			accept: "application/json",
+			"content-type": "application/json",
+			Authorization: `Bearer ${accessToken}`,
+		},
+		body: JSON.stringify(payload ?? {}),
+	});
+
+	const responseBody = await parseJsonResponse(response);
+
+	if (!response.ok) {
+		throw new Error(
+			getErrorMessage(responseBody, "Unable to send at-risk email."),
+		);
+	}
+
+	return responseBody as SendAtRiskEmailResponse;
+}
+
+export async function sendBulkAtRiskEmails(
+	accessToken: string,
+	payload: SendBulkAtRiskEmailRequest,
+) {
+	const response = await fetch(`${API_BASE_URL}/students/send-bulk-at-risk-emails`, {
+		method: "POST",
+		headers: {
+			accept: "application/json",
+			"content-type": "application/json",
+			Authorization: `Bearer ${accessToken}`,
+		},
+		body: JSON.stringify(payload),
+	});
+
+	const responseBody = await parseJsonResponse(response);
+
+	if (!response.ok) {
+		throw new Error(
+			getErrorMessage(responseBody, "Unable to send at-risk emails."),
+		);
+	}
+
+	return responseBody as SendBulkAtRiskEmailResponse;
+}
