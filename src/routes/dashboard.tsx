@@ -12,6 +12,7 @@ import { useAuth } from "#/features/auth/auth-provider";
 import { fetchCourses } from "#/features/courses/courses-api";
 import {
 	buildStudentPayload,
+	buildStudentRiskProfilePayload,
 	createEmptyStudentFormValues,
 	createStudentFormValues,
 	type StudentFormValues,
@@ -23,9 +24,11 @@ import {
 	buildRiskDistribution,
 } from "#/features/students/student-insights";
 import {
+	createStudentRiskProfile,
 	fetchStudents,
 	type StudentMutationInput,
 	updateStudent,
+	updateStudentRiskProfile,
 } from "#/features/students/students-api";
 
 export const Route = createFileRoute("/dashboard")({
@@ -106,6 +109,11 @@ function DashboardPage() {
 		[selectedStudentId, studentSummaries],
 	);
 
+	const refreshStudents = async () => {
+		await queryClient.invalidateQueries({ queryKey: ["students"] });
+		await queryClient.refetchQueries({ queryKey: ["students"], type: "active" });
+	};
+
 	const updateStudentMutation = useMutation({
 		mutationFn: ({
 			studentId,
@@ -114,10 +122,6 @@ function DashboardPage() {
 			studentId: number;
 			payload: StudentMutationInput;
 		}) => updateStudent(token ?? "", studentId, payload),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ["students"] });
-			closeForm();
-		},
 	});
 
 	const closeForm = () => {
@@ -164,10 +168,18 @@ function DashboardPage() {
 			}
 
 			const payload = buildStudentPayload(formValues);
+			const riskProfilePayload = buildStudentRiskProfilePayload(formValues);
 			await updateStudentMutation.mutateAsync({
 				studentId: selectedStudent.id,
 				payload,
 			});
+			if (selectedStudent.risk_profile) {
+				await updateStudentRiskProfile(token ?? "", selectedStudent.id, riskProfilePayload);
+			} else {
+				await createStudentRiskProfile(token ?? "", selectedStudent.id, riskProfilePayload);
+			}
+			await refreshStudents();
+			closeForm();
 		} catch (submissionError) {
 			setFormError(
 				submissionError instanceof Error

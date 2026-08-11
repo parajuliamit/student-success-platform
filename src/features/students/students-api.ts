@@ -71,7 +71,11 @@ export interface StudentRiskProfileInput {
 	gender: "male" | "female";
 	age: number;
 	learning_style: "visual" | "auditory" | "kinesthetic" | "reading_writing";
-	online_courses: boolean;
+	online_courses: number;
+	discussions: boolean;
+	assignments: number;
+	education_technology: boolean;
+	stress_level: number;
 }
 
 export interface StudentMutationInput {
@@ -88,7 +92,6 @@ export interface StudentMutationInput {
 	state: string | null;
 	country: string | null;
 	postal_code: string | null;
-	risk_profile: StudentRiskProfileInput;
 }
 
 export interface StudentMutationResponse {
@@ -221,6 +224,64 @@ export async function updateStudent(
 	return sendStudentMutation(
 		accessToken,
 		`${API_BASE_URL}/students/${studentId}`,
+		"PATCH",
+		payload,
+	);
+}
+
+async function sendRiskProfileMutation(
+	accessToken: string,
+	url: string,
+	method: "POST" | "PATCH",
+	payload: StudentRiskProfileInput,
+) {
+	const response = await fetch(url, {
+		method,
+		headers: {
+			accept: "application/json",
+			"content-type": "application/json",
+			Authorization: `Bearer ${accessToken}`,
+		},
+		body: JSON.stringify(payload),
+	});
+
+	const responseBody = await parseJsonResponse(response);
+
+	if (!response.ok) {
+		throw new Error(
+			getErrorMessage(
+				responseBody,
+				method === "POST"
+					? "Unable to create risk profile."
+					: "Unable to update risk profile.",
+			),
+		);
+	}
+
+	return responseBody;
+}
+
+export async function createStudentRiskProfile(
+	accessToken: string,
+	studentId: number,
+	payload: StudentRiskProfileInput,
+) {
+	return sendRiskProfileMutation(
+		accessToken,
+		`${API_BASE_URL}/students/${studentId}/risk-profile`,
+		"POST",
+		payload,
+	);
+}
+
+export async function updateStudentRiskProfile(
+	accessToken: string,
+	studentId: number,
+	payload: StudentRiskProfileInput,
+) {
+	return sendRiskProfileMutation(
+		accessToken,
+		`${API_BASE_URL}/students/${studentId}/risk-profile`,
 		"PATCH",
 		payload,
 	);

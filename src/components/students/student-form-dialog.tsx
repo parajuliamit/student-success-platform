@@ -72,6 +72,11 @@ export function StudentFormDialog({
 					onSubmit={onSubmit}
 				>
 					<div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+						{errorMessage ? (
+							<div className="mb-6 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+								{errorMessage}
+							</div>
+						) : null}
 						<div className="space-y-6">
 							<section className="space-y-4">
 								<div className="grid gap-4 sm:grid-cols-2">
@@ -435,12 +440,7 @@ export function StudentFormDialog({
 							</section>
 						</div>
 
-						{errorMessage ? (
-							<div className="mt-6 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
-								{errorMessage}
-							</div>
-						) : null}
-					</div>
+</div>
 
 					<DialogFooter className="sticky bottom-0 z-10 border-t border-border/60 bg-popover px-4 py-4 sm:px-6 sm:py-5">
 						<Button type="button" variant="outline" onClick={onCancel}>

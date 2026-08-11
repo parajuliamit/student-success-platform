@@ -42,15 +42,18 @@ import { useAuth } from "#/features/auth/auth-provider";
 import { fetchCourses } from "#/features/courses/courses-api";
 import {
 	createStudent,
+	createStudentRiskProfile,
 	fetchStudents,
 	type StudentMutationInput,
 	type StudentRecord,
 	updateStudent,
+	updateStudentRiskProfile,
 	sendAtRiskEmail,
 	sendBulkAtRiskEmails,
 } from "#/features/students/students-api";
 import {
 	buildStudentPayload,
+	buildStudentRiskProfilePayload,
 	createEmptyStudentFormValues,
 	createStudentFormValues,
 	type StudentFormMode,
@@ -183,17 +186,14 @@ function StudentsPage() {
 	);
 
 
+	const refreshStudents = async () => {
+		await queryClient.invalidateQueries({ queryKey: ["students"] });
+		await queryClient.refetchQueries({ queryKey: ["students"], type: "active" });
+	};
+
 	const createStudentMutation = useMutation({
 		mutationFn: (payload: StudentMutationInput) =>
 			createStudent(token ?? "", payload),
-		onSuccess: async () => {
-			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["students"] }),
-			]);
-			setIsFormOpen(false);
-			setFormValues(createEmptyStudentFormValues());
-			setFormError(null);
-		},
 	});
 
 	const updateStudentMutation = useMutation({
@@ -204,14 +204,6 @@ function StudentsPage() {
 			studentId: number;
 			payload: StudentMutationInput;
 		}) => updateStudent(token ?? "", studentId, payload),
-		onSuccess: async () => {
-			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["students"] }),
-			]);
-			setIsFormOpen(false);
-			setFormValues(createEmptyStudentFormValues());
-			setFormError(null);
-		},
 	});
 
 	const sendEmailMutation = useMutation({
@@ -401,6 +393,7 @@ function StudentsPage() {
 		setIsFormOpen(false);
 		setFormError(null);
 		setFormValues(createEmptyStudentFormValues());
+		setViewingStudent(null);
 		setIsViewMode(false);
 	};
 
@@ -408,12 +401,14 @@ function StudentsPage() {
 		setFormMode("create");
 		setFormValues(createEmptyStudentFormValues());
 		setFormError(null);
+		setViewingStudent(null);
 		setIsViewMode(false);
 		setIsFormOpen(true);
 	};
 
 	const openEditForm = (student: StudentRecord) => {
 		setFormMode("edit");
+		setViewingStudent(student);
 		setFormValues(createStudentFormValues(student));
 		setFormError(null);
 		setIsViewMode(false);
@@ -450,9 +445,20 @@ function StudentsPage() {
 
 		try {
 			const payload = buildStudentPayload(formValues);
+			const riskProfilePayload = buildStudentRiskProfilePayload(formValues);
 
 			if (formMode === "create") {
-				await createStudentMutation.mutateAsync(payload);
+				const createdStudent = await createStudentMutation.mutateAsync(payload);
+				await createStudentRiskProfile(
+					token ?? "",
+					createdStudent.student.id,
+					riskProfilePayload,
+				);
+				await refreshStudents();
+				setIsFormOpen(false);
+				setFormValues(createEmptyStudentFormValues());
+				setViewingStudent(null);
+				setFormError(null);
 				return;
 			}
 
@@ -468,6 +474,16 @@ function StudentsPage() {
 				studentId: viewingStudent.id,
 				payload,
 			});
+			if (viewingStudent.risk_profile) {
+				await updateStudentRiskProfile(token ?? "", viewingStudent.id, riskProfilePayload);
+			} else {
+				await createStudentRiskProfile(token ?? "", viewingStudent.id, riskProfilePayload);
+			}
+			await refreshStudents();
+			setIsFormOpen(false);
+			setFormValues(createEmptyStudentFormValues());
+			setViewingStudent(null);
+			setFormError(null);
 		} catch (submissionError) {
 			setFormError(
 				submissionError instanceof Error

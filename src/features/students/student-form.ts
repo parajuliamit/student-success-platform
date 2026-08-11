@@ -46,7 +46,7 @@ export function createEmptyStudentFormValues(): StudentFormValues {
 	return {
 		name: "",
 		bannerId: "",
-		joinedYear: String(new Date().getFullYear()),
+		joinedYear: "",
 		courseId: "",
 		dateOfBirth: "",
 		personalEmail: "",
@@ -57,20 +57,20 @@ export function createEmptyStudentFormValues(): StudentFormValues {
 		state: "",
 		country: "",
 		postalCode: "",
-		studyHours: "10-15",
-		attendance: "75",
-		resources: "2",
-		motivation: "2",
-		age: "20",
+		studyHours: "",
+		attendance: "",
+		resources: "",
+		motivation: "",
+		age: "",
 		gender: "male",
 		learningStyle: "visual",
 		extracurricular: false,
-		internet: true,
-		onlineCourses: "15",
-		discussions: true,
-		assignments: "75",
-		educationTechnology: true,
-		stressLevel: "1",
+		internet: false,
+		onlineCourses: "",
+		discussions: false,
+		assignments: "",
+		educationTechnology: false,
+		stressLevel: "",
 	};
 }
 
@@ -242,36 +242,39 @@ export function buildStudentPayload(values: StudentFormValues): StudentMutationI
 		state: normalizeOptionalText(values.state),
 		country: normalizeOptionalText(values.country),
 		postal_code: normalizeOptionalText(values.postalCode),
-		risk_profile: {
-			study_hours: parseStudyHoursRange(values.studyHours),
-			attendance: parseAttendanceRange(values.attendance),
-			resources: validateNumberRange(
-				parseRequiredNumber(values.resources, "Resources"),
-				0,
-				2,
-				"Resources"
-			),
-			extracurricular: values.extracurricular ? 1 : 0,
-			motivation: validateNumberRange(
-				parseRequiredNumber(values.motivation, "Motivation"),
-				0,
-				2,
-				"Motivation"
-			),
-			internet: values.internet ? 1 : 0,
-			gender: values.gender,
-			age: validateAge(parseRequiredNumber(values.age, "Age")),
-			learning_style: values.learningStyle,
-			online_courses: parseOnlineCoursesRange(values.onlineCourses),
-			discussions: values.discussions ? 1 : 0,
-			assignments: parseAssignmentsRange(values.assignments),
-			education_technology: values.educationTechnology ? 1 : 0,
-			stress_level: validateNumberRange(
-				parseRequiredNumber(values.stressLevel, "Stress level"),
-				0,
-				2,
-				"Stress level"
-			),
-		},
+	};
+}
+
+export function buildStudentRiskProfilePayload(values: StudentFormValues) {
+	return {
+		study_hours: parseStudyHoursRange(values.studyHours),
+		attendance: parseAttendanceRange(values.attendance),
+		resources: validateNumberRange(
+			parseRequiredNumber(values.resources, "Resources"),
+			0,
+			2,
+			"Resources",
+		),
+		extracurricular: Boolean(values.extracurricular),
+		motivation: validateNumberRange(
+			parseRequiredNumber(values.motivation, "Motivation"),
+			0,
+			2,
+			"Motivation",
+		),
+		internet: Boolean(values.internet),
+		gender: values.gender,
+		age: validateAge(parseRequiredNumber(values.age, "Age")),
+		learning_style: values.learningStyle,
+		online_courses: parseOnlineCoursesRange(values.onlineCourses),
+		discussions: Boolean(values.discussions),
+		assignments: parseAssignmentsRange(values.assignments),
+		education_technology: Boolean(values.educationTechnology),
+		stress_level: validateNumberRange(
+			parseRequiredNumber(values.stressLevel, "Stress level"),
+			0,
+			2,
+			"Stress level",
+		),
 	};
 }
