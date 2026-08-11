@@ -1,0 +1,504 @@
+import type { FormEvent, ReactNode } from "react";
+import { Button } from "#/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
+import { Switch } from "#/components/ui/switch";
+import type { CourseRecord } from "#/features/courses/courses-api";
+import {
+	learningStyleOptions,
+	type StudentFormMode,
+	type StudentFormValues,
+} from "#/features/students/student-form";
+
+interface StudentFormDialogProps {
+	open: boolean;
+	mode: StudentFormMode;
+	values: StudentFormValues;
+	courses: CourseRecord[];
+	isCoursesLoading: boolean;
+	isSaving: boolean;
+	errorMessage: string | null;
+	isViewMode?: boolean;
+	onOpenChange: (open: boolean) => void;
+	onCancel: () => void;
+	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+	onValueChange: <Key extends keyof StudentFormValues>(
+		key: Key,
+		value: StudentFormValues[Key],
+	) => void;
+}
+
+export function StudentFormDialog({
+	open,
+	mode,
+	values,
+	courses,
+	isCoursesLoading,
+	isSaving,
+	errorMessage,
+	isViewMode = false,
+	onOpenChange,
+	onCancel,
+	onSubmit,
+	onValueChange,
+}: StudentFormDialogProps) {
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="w-[min(96vw,90rem)] max-h-[calc(100svh-2rem)] max-w-[90rem] overflow-hidden p-0 sm:w-[min(95vw,90rem)] sm:max-w-[90rem]">
+				<DialogHeader className="border-b border-border/60 px-4 py-4 sm:px-6 sm:py-5">
+					<DialogTitle>
+					{isViewMode
+						? "View student"
+						: mode === "create"
+							? "Add student"
+							: "Update student"}
+				</DialogTitle>
+				<DialogDescription>
+					{isViewMode
+						? "Student profile details and risk information."
+						: "Save student profile details and the live risk inputs used across the dashboard."}
+					</DialogDescription>
+				</DialogHeader>
+				<form
+					className="grid max-h-[calc(100svh-8rem)] grid-rows-[minmax(0,1fr)_auto]"
+					onSubmit={onSubmit}
+				>
+					<div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+						<div className="space-y-6">
+							<section className="space-y-4">
+								<div className="grid gap-4 sm:grid-cols-2">
+									<FormField label="Full name" htmlFor="student-name">
+										<Input
+											id="student-name"
+											value={values.name}
+											onChange={(event) =>
+												onValueChange("name", event.target.value)
+											}
+											placeholder="Taylor Brooks"										disabled={isViewMode}											required
+										/>
+									</FormField>
+									<FormField label="Banner ID" htmlFor="student-banner-id">
+										<Input
+											id="student-banner-id"
+											value={values.bannerId}
+											onChange={(event) =>
+												onValueChange("bannerId", event.target.value)
+											}
+											placeholder="B00012345"										disabled={isViewMode}											required
+										/>
+									</FormField>
+									<FormField label="Course" htmlFor="student-course">
+										<select
+											id="student-course"
+											value={values.courseId}
+											onChange={(event) =>
+												onValueChange("courseId", event.target.value)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+											disabled={isViewMode || isCoursesLoading || courses.length === 0}
+											required
+										>
+											<option value="" disabled>
+												{isCoursesLoading
+													? "Loading courses..."
+													: courses.length === 0
+														? "No courses available"
+														: "Select course"}
+											</option>
+											{courses.map((course) => (
+												<option key={course.id} value={String(course.id)}>
+													{course.name}
+												</option>
+											))}
+										</select>
+									</FormField>
+									<FormField label="Joined year" htmlFor="student-joined-year">
+										<Input
+											id="student-joined-year"
+											type="number"
+											value={values.joinedYear}
+											onChange={(event) =>
+												onValueChange("joinedYear", event.target.value)
+											}
+											disabled={isViewMode}
+											required
+										/>
+									</FormField>
+									<FormField label="Birth date" htmlFor="student-dob">
+										<Input
+											id="student-dob"
+											type="date"
+											value={values.dateOfBirth}
+											onChange={(event) =>
+												onValueChange("dateOfBirth", event.target.value)
+											}
+											disabled={isViewMode}
+										/>
+									</FormField>
+									<FormField label="Personal email" htmlFor="student-email">
+										<Input
+											id="student-email"
+											type="email"
+											value={values.personalEmail}
+											onChange={(event) =>
+												onValueChange("personalEmail", event.target.value)
+											}
+											placeholder="student@example.edu"										disabled={isViewMode}										/>
+									</FormField>
+									<FormField label="Phone" htmlFor="student-phone">
+										<Input
+											id="student-phone"
+											value={values.phone}
+											onChange={(event) =>
+												onValueChange("phone", event.target.value)
+											}
+											placeholder="(555) 010-4400"										disabled={isViewMode}										/>
+									</FormField>
+									<FormField label="Address line 1" htmlFor="student-address-line1">
+										<Input
+											id="student-address-line1"
+											value={values.addressLine1}
+											onChange={(event) =>
+												onValueChange("addressLine1", event.target.value)
+											}
+											placeholder="123 Market Street"										disabled={isViewMode}										/>
+									</FormField>
+									<FormField label="Address line 2" htmlFor="student-address-line2">
+										<Input
+											id="student-address-line2"
+											value={values.addressLine2}
+											onChange={(event) =>
+												onValueChange("addressLine2", event.target.value)
+											}
+											placeholder="Apartment 4B"										disabled={isViewMode}										/>
+									</FormField>
+									<FormField label="City" htmlFor="student-city">
+										<Input
+											id="student-city"
+											value={values.city}
+											onChange={(event) =>
+												onValueChange("city", event.target.value)
+											}										disabled={isViewMode}										/>
+									</FormField>
+									<FormField label="State" htmlFor="student-state">
+										<Input
+											id="student-state"
+											value={values.state}
+											onChange={(event) =>
+												onValueChange("state", event.target.value)
+											}										disabled={isViewMode}										/>
+									</FormField>
+									<FormField label="Country" htmlFor="student-country">
+										<Input
+											id="student-country"
+											value={values.country}
+											onChange={(event) =>
+												onValueChange("country", event.target.value)
+											}										disabled={isViewMode}										/>
+									</FormField>
+									<FormField label="Postal code" htmlFor="student-postal-code">
+										<Input
+											id="student-postal-code"
+											value={values.postalCode}
+											onChange={(event) =>
+												onValueChange("postalCode", event.target.value)
+											}										disabled={isViewMode}										/>
+									</FormField>
+								</div>
+							</section>
+
+							<section className="space-y-4">
+								<div>
+									<h3 className="text-sm font-semibold">Risk Profile - Academic Performance</h3>
+									<p className="text-sm text-muted-foreground">
+										Academic indicators used in risk calculations.
+									</p>
+								</div>
+								<div className="grid gap-4 sm:grid-cols-2">
+									<FormField label="Study hours per week" htmlFor="student-study-hours">
+										<select
+											id="student-study-hours"
+											value={values.studyHours}
+											onChange={(event) =>
+												onValueChange("studyHours", event.target.value)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+											disabled={isViewMode}
+											required
+										>
+											<option value="">Select study hours</option>
+											<option value="0-5">0-5 hours</option>
+											<option value="5-10">5-10 hours</option>
+											<option value="10-15">10-15 hours</option>
+											<option value="15-20">15-20 hours</option>
+											<option value="20+">20+ hours</option>
+										</select>
+									</FormField>
+									<FormField label="Attendance Rate" htmlFor="student-attendance">
+										<select
+											id="student-attendance"
+											value={values.attendance}
+											onChange={(event) =>
+												onValueChange("attendance", event.target.value)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}											required
+										>
+											<option value="">Select attendance</option>
+											<option value="0">0-25%</option>
+											<option value="25">25-50%</option>
+											<option value="50">50-75%</option>
+											<option value="75">75-90%</option>
+											<option value="90">90-100%</option>
+										</select>
+									</FormField>
+									<FormField label="Learning Resources" htmlFor="student-resources">
+										<select
+											id="student-resources"
+											value={values.resources}
+											onChange={(event) =>
+												onValueChange("resources", event.target.value)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+										disabled={isViewMode}
+										required
+									>
+										<option value="">Select resources</option>
+											<option value="0">No access to resources</option>
+											<option value="1">Limited resource access</option>
+											<option value="2">Full resource access</option>
+										</select>
+									</FormField>
+									<FormField label="Academic Motivation" htmlFor="student-motivation">
+										<select
+											id="student-motivation"
+											value={values.motivation}
+											onChange={(event) =>
+												onValueChange("motivation", event.target.value)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+										disabled={isViewMode}
+										required
+									>
+										<option value="">Select motivation</option>
+											<option value="0">Low motivation</option>
+											<option value="1">Moderate motivation</option>
+											<option value="2">High motivation</option>
+										</select>
+									</FormField>
+									<FormField label="Online Courses Enrolled" htmlFor="student-online-courses">
+										<select
+											id="student-online-courses"
+											value={values.onlineCourses}
+											onChange={(event) =>
+												onValueChange("onlineCourses", event.target.value)
+											}
+										className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+										disabled={isViewMode}
+										required
+										>
+											<option value="">Select online courses</option>
+											<option value="0">0-5 courses</option>
+											<option value="5">5-10 courses</option>
+											<option value="10">10-15 courses</option>
+											<option value="15">15-20 courses</option>
+										</select>
+									</FormField>
+									<FormField label="Assignment Completion Rate" htmlFor="student-assignments">
+										<select
+											id="student-assignments"
+											value={values.assignments}
+											onChange={(event) =>
+												onValueChange("assignments", event.target.value)
+											}
+										className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+										disabled={isViewMode}
+										required
+										>
+											<option value="">Select completion rate</option>
+											<option value="0">0-25%</option>
+											<option value="25">25-50%</option>
+											<option value="50">50-75%</option>
+											<option value="75">75-100%</option>
+										</select>
+									</FormField>
+								</div>
+							</section>
+
+							<section className="space-y-4">
+								<div>
+									<h3 className="text-sm font-semibold">Risk Profile - Personal Information</h3>
+									<p className="text-sm text-muted-foreground">
+										Personal demographics and learning preferences.
+									</p>
+								</div>
+								<div className="grid gap-4 sm:grid-cols-2">
+									<FormField label="Age" htmlFor="student-age">
+										<Input
+											id="student-age"
+											type="number"
+											min="18"
+											value={values.age}
+											onChange={(event) =>
+												onValueChange("age", event.target.value)
+											}												disabled={isViewMode}											required
+										/>
+									</FormField>
+									<FormField label="Gender" htmlFor="student-gender">
+										<select
+											id="student-gender"
+											value={values.gender}
+											onChange={(event) =>
+												onValueChange(
+													"gender",
+													event.target.value as StudentFormValues["gender"],
+												)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}										>
+											<option value="male">Male</option>
+											<option value="female">Female</option>
+										</select>
+									</FormField>
+									<FormField label="Learning Style" htmlFor="student-learning-style">
+										<select
+											id="student-learning-style"
+											value={values.learningStyle}
+											onChange={(event) =>
+												onValueChange(
+													"learningStyle",
+													event.target.value as StudentFormValues["learningStyle"],
+												)
+											}
+											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}										>
+											{learningStyleOptions.map((option) => (
+												<option key={option} value={option}>
+													{option.replace("_", " ")}
+												</option>
+											))}
+										</select>
+									</FormField>
+								</div>
+							</section>
+
+							<section className="space-y-4">
+								<div>
+									<h3 className="text-sm font-semibold">Risk Profile - Behavioral & Environmental</h3>
+									<p className="text-sm text-muted-foreground">
+										Life situation and behavioral indicators.
+									</p>
+								</div>
+								<div className="grid gap-3 rounded-xl border border-border/60 bg-muted/20 p-4 sm:grid-cols-2">
+									<ToggleField
+										label="Participates in Extracurricular"
+										description="Engages in campus activities"
+										checked={values.extracurricular}
+										disabled={isViewMode}
+										onCheckedChange={(checked) =>
+											onValueChange("extracurricular", checked)
+										}
+									/>
+									<ToggleField
+										label="Internet access"
+										description="Reliable access for coursework."
+										checked={values.internet}
+										disabled={isViewMode}
+										onCheckedChange={(checked) =>
+											onValueChange("internet", checked)
+										}
+									/>
+									<ToggleField
+										label="Discussions"
+										description="Participates in class discussions."
+										checked={values.discussions}
+										disabled={isViewMode}
+										onCheckedChange={(checked) =>
+											onValueChange("discussions", checked)
+										}
+									/>
+									<ToggleField
+										label="Education technology"
+										description="Comfortable using technology for learning."
+										checked={values.educationTechnology}
+										disabled={isViewMode}
+										onCheckedChange={(checked) =>
+											onValueChange("educationTechnology", checked)
+										}
+									/>
+								</div>
+							</section>
+						</div>
+
+						{errorMessage ? (
+							<div className="mt-6 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+								{errorMessage}
+							</div>
+						) : null}
+					</div>
+
+					<DialogFooter className="sticky bottom-0 z-10 border-t border-border/60 bg-popover px-4 py-4 sm:px-6 sm:py-5">
+						<Button type="button" variant="outline" onClick={onCancel}>
+						{isViewMode ? "Close" : "Cancel"}
+					</Button>
+					{!isViewMode && (
+						<Button type="submit" disabled={isSaving}>
+							{isSaving
+								? "Saving..."
+								: mode === "create"
+									? "Add student"
+									: "Save changes"}
+						</Button>
+					)}
+					</DialogFooter>
+				</form>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function FormField({
+	label,
+	htmlFor,
+	children,
+}: {
+	label: string;
+	htmlFor: string;
+	children: ReactNode;
+}) {
+	return (
+		<div className="space-y-2">
+			<Label htmlFor={htmlFor}>{label}</Label>
+			{children}
+		</div>
+	);
+}
+
+function ToggleField({
+	label,
+	description,
+	checked,
+	disabled,
+	onCheckedChange,
+}: {
+	label: string;
+	description: string;
+	checked: boolean;
+	disabled?: boolean;
+	onCheckedChange: (checked: boolean) => void;
+}) {
+	return (
+		<div className="flex items-start justify-between gap-3 rounded-lg border border-border/50 bg-background/70 p-3">
+			<div>
+				<p className="text-sm font-medium">{label}</p>
+				<p className="text-sm text-muted-foreground">{description}</p>
+			</div>
+			<Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
+		</div>
+	);
+}
