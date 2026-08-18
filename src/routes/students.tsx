@@ -787,7 +787,7 @@ function StudentsPage() {
 						<CardDescription>Customize the view of your student list</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
 							<div className="space-y-2">
 								<label className="text-sm font-medium">Course</label>
 								<select
@@ -825,7 +825,7 @@ function StudentsPage() {
 								</select>
 							</div>
 
-							<div className="space-y-2">
+							{/* <div className="space-y-2">
 								<label className="text-sm font-medium">Learning Style</label>
 								<select
 									value={selectedLearningStyle}
@@ -841,7 +841,7 @@ function StudentsPage() {
 									<option value="kinesthetic">Kinesthetic</option>
 									<option value="reading_writing">Reading/Writing</option>
 								</select>
-							</div>
+							</div> */}
 
 							<div className="space-y-2">
 								<label className="text-sm font-medium">Sort By</label>
@@ -870,61 +870,6 @@ function StudentsPage() {
 									</Button>
 								</div>
 							</div>
-						</div>
-
-						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-							<div className="space-y-2">
-								<label className="text-sm font-medium">Age Range</label>
-								<div className="flex gap-2">
-									<Input
-										type="number"
-										placeholder="Min"
-										value={ageMin}
-										onChange={(e) => {
-											setAgeMin(e.target.value);
-											setCurrentPage(1);
-										}}
-										className="h-9"
-									/>
-									<Input
-										type="number"
-										placeholder="Max"
-										value={ageMax}
-										onChange={(e) => {
-											setAgeMax(e.target.value);
-											setCurrentPage(1);
-										}}
-										className="h-9"
-									/>
-								</div>
-							</div>
-
-							<div className="space-y-2">
-								<label className="text-sm font-medium">Attendance %</label>
-								<div className="flex gap-2">
-									<Input
-										type="number"
-										placeholder="Min"
-										value={attendanceMin}
-										onChange={(e) => {
-											setAttendanceMin(e.target.value);
-											setCurrentPage(1);
-										}}
-										className="h-9"
-									/>
-									<Input
-										type="number"
-										placeholder="Max"
-										value={attendanceMax}
-										onChange={(e) => {
-											setAttendanceMax(e.target.value);
-											setCurrentPage(1);
-										}}
-										className="h-9"
-									/>
-								</div>
-							</div>
-
 							<div className="space-y-2">
 								<label className="text-sm font-medium">Page Size</label>
 								<select
@@ -965,6 +910,62 @@ function StudentsPage() {
 								</Button>
 							</div>
 						</div>
+
+						{/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"> */}
+							{/* <div className="space-y-2">
+								<label className="text-sm font-medium">Age Range</label>
+								<div className="flex gap-2">
+									<Input
+										type="number"
+										placeholder="Min"
+										value={ageMin}
+										onChange={(e) => {
+											setAgeMin(e.target.value);
+											setCurrentPage(1);
+										}}
+										className="h-9"
+									/>
+									<Input
+										type="number"
+										placeholder="Max"
+										value={ageMax}
+										onChange={(e) => {
+											setAgeMax(e.target.value);
+											setCurrentPage(1);
+										}}
+										className="h-9"
+									/>
+								</div>
+							</div> */}
+
+							{/* <div className="space-y-2">
+								<label className="text-sm font-medium">Attendance %</label>
+								<div className="flex gap-2">
+									<Input
+										type="number"
+										placeholder="Min"
+										value={attendanceMin}
+										onChange={(e) => {
+											setAttendanceMin(e.target.value);
+											setCurrentPage(1);
+										}}
+										className="h-9"
+									/>
+									<Input
+										type="number"
+										placeholder="Max"
+										value={attendanceMax}
+										onChange={(e) => {
+											setAttendanceMax(e.target.value);
+											setCurrentPage(1);
+										}}
+										className="h-9"
+									/>
+								</div>
+							</div> */}
+
+							
+						{/* </div> */}
 
 						<div className="rounded-xl border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground">
 							Showing {filteredAndSortedStudents.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to{" "}
