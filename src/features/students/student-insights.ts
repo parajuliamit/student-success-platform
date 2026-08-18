@@ -289,7 +289,7 @@ export function buildDashboardStats(
 			  ) / students.length;
 
 	const atRiskStudents = students.filter(
-		(student) => student.riskLevel !== "low",
+		(student) => student.riskLevel !== "low" && student.riskLevel !== "medium",
 	).length;
 
 	return [

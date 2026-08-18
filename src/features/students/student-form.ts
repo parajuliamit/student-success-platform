@@ -24,8 +24,8 @@ export type StudentFormValues = {
 	resources: string;
 	motivation: string;
 	age: string;
-	gender: "male" | "female";
-	learningStyle: "visual" | "auditory" | "kinesthetic" | "reading_writing";
+	gender: "" | "male" | "female";
+	learningStyle: "" | "visual" | "auditory" | "kinesthetic" | "reading_writing";
 	extracurricular: boolean;
 	internet: boolean;
 	onlineCourses: string;
@@ -62,8 +62,8 @@ export function createEmptyStudentFormValues(): StudentFormValues {
 		resources: "",
 		motivation: "",
 		age: "",
-		gender: "male",
-		learningStyle: "visual",
+		gender: "",
+		learningStyle: "",
 		extracurricular: false,
 		internet: false,
 		onlineCourses: "",
@@ -75,33 +75,39 @@ export function createEmptyStudentFormValues(): StudentFormValues {
 }
 
 function convertStudyHoursToRange(hours: number): string {
-	if (hours < 5) return "0-5";
-	if (hours < 10) return "5-10";
-	if (hours < 15) return "10-15";
-	if (hours < 20) return "15-20";
-	return "20+";
+	if (hours <= 5) return "5";
+	if (hours <= 10) return "10";
+	if (hours <= 15) return "15";
+	if (hours <= 20) return "20";
+	if (hours <= 25) return "25";
+	if (hours <= 30) return "30";
+	if (hours <= 35) return "35";
+	return "40";
 }
 
 function convertAttendanceToRange(attendance: number): string {
-	if (attendance < 25) return "0";
-	if (attendance < 50) return "25";
-	if (attendance < 75) return "50";
-	if (attendance < 90) return "75";
-	return "90";
+	if (attendance <= 60) return "60";
+	if (attendance <= 70) return "70";
+	if (attendance <= 80) return "80";
+	if (attendance <= 90) return "90";
+	return "100";
 }
 
 function convertOnlineCoursesToRange(courses: number): string {
-	if (courses < 5) return "0";
-	if (courses < 10) return "5";
-	if (courses < 15) return "10";
-	return "15";
+	if (courses <= 0) return "0";
+	if (courses <= 5) return "5";
+	if (courses <= 10) return "10";
+	if (courses <= 15) return "15";
+	return "20";
 }
 
 function convertAssignmentsToRange(assignments: number): string {
-	if (assignments < 25) return "0";
-	if (assignments < 50) return "25";
-	if (assignments < 75) return "50";
-	return "75";
+	if (assignments <= 50) return "50";
+	if (assignments <= 60) return "60";
+	if (assignments <= 70) return "70";
+	if (assignments <= 80) return "80";
+	if (assignments <= 90) return "90";
+	return "100";
 }
 
 export function createStudentFormValues(student: StudentRecord): StudentFormValues {
@@ -124,8 +130,9 @@ export function createStudentFormValues(student: StudentRecord): StudentFormValu
 		resources: String(student.risk_profile?.resources ?? 2),
 		motivation: String(student.risk_profile?.motivation ?? 2),
 		age: String(student.risk_profile?.age ?? 20),
-		gender: student.risk_profile?.gender ?? "male",
-		learningStyle: student.risk_profile?.learning_style ?? "visual",
+		gender: (student.risk_profile?.gender as StudentFormValues["gender"]) ?? "",
+		learningStyle:
+			(student.risk_profile?.learning_style as StudentFormValues["learningStyle"]) ?? "",
 		extracurricular: student.risk_profile?.extracurricular ?? false,
 		internet: student.risk_profile?.internet ?? true,
 		onlineCourses: convertOnlineCoursesToRange(student.risk_profile?.online_courses ?? 20),
@@ -144,8 +151,8 @@ function normalizeOptionalText(value: string) {
 function parseRequiredNumber(value: string, label: string) {
 	const parsed = Number(value);
 
-	if (!Number.isFinite(parsed)) {
-		throw new Error(`${label} must be a valid number.`);
+	if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
+		throw new Error(`${label} must be a whole number integer.`);
 	}
 
 	return parsed;
@@ -161,54 +168,61 @@ function validateNumberRange(value: number, min: number, max: number, label: str
 function parseStudyHoursRange(value: string): number {
 	if (!value) throw new Error("Study hours is required.");
 	const ranges: Record<string, number> = {
-		"0-5": 2.5,
-		"5-10": 7.5,
-		"10-15": 12.5,
-		"15-20": 17.5,
-		"20+": 22,
+		"5": 5,
+		"10": 10,
+		"15": 15,
+		"20": 20,
+		"25": 25,
+		"30": 30,
+		"35": 35,
+		"40": 40,
 	};
-	return ranges[value] ?? parseRequiredNumber(value, "Study hours");
+	const parsed = ranges[value] ?? parseRequiredNumber(value, "Study hours");
+	return validateNumberRange(parsed, 5, 40, "Study hours");
 }
 
 function parseAttendanceRange(value: string): number {
 	if (!value) throw new Error("Attendance is required.");
 	const ranges: Record<string, number> = {
-		"0": 12.5,
-		"25": 37.5,
-		"50": 62.5,
-		"75": 82.5,
-		"90": 95,
+		"60": 60,
+		"70": 70,
+		"80": 80,
+		"90": 90,
+		"100": 100,
 	};
-	return ranges[value] ?? parseRequiredNumber(value, "Attendance");
+	const parsed = ranges[value] ?? parseRequiredNumber(value, "Attendance");
+	return validateNumberRange(parsed, 60, 100, "Attendance");
 }
 
 function parseOnlineCoursesRange(value: string): number {
 	if (!value) throw new Error("Online courses is required.");
 	const ranges: Record<string, number> = {
-		"0": 2.5,
-		"5": 7.5,
-		"10": 12.5,
-		"15": 17.5,
+		"0": 0,
+		"5": 5,
+		"10": 10,
+		"15": 15,
+		"20": 20,
 	};
-	return ranges[value] ?? parseRequiredNumber(value, "Online courses");
+	const parsed = ranges[value] ?? parseRequiredNumber(value, "Online courses");
+	return validateNumberRange(parsed, 0, 20, "Online courses");
 }
 
 function parseAssignmentsRange(value: string): number {
 	if (!value) throw new Error("Assignment completion rate is required.");
 	const ranges: Record<string, number> = {
-		"0": 12.5,
-		"25": 37.5,
-		"50": 62.5,
-		"75": 87.5,
+		"50": 50,
+		"60": 60,
+		"70": 70,
+		"80": 80,
+		"90": 90,
+		"100": 100,
 	};
-	return ranges[value] ?? parseRequiredNumber(value, "Assignments");
+	const parsed = ranges[value] ?? parseRequiredNumber(value, "Assignments");
+	return validateNumberRange(parsed, 50, 100, "Assignments");
 }
 
 function validateAge(age: number) {
-	if (age < 18) {
-		throw new Error("Student age must be at least 18 years old.");
-	}
-	return age;
+	return validateNumberRange(age, 18, 29, "Student age");
 }
 
 export function buildStudentPayload(values: StudentFormValues): StudentMutationInput {
@@ -246,6 +260,13 @@ export function buildStudentPayload(values: StudentFormValues): StudentMutationI
 }
 
 export function buildStudentRiskProfilePayload(values: StudentFormValues) {
+	if (!values.gender) {
+		throw new Error("Gender is required.");
+	}
+	if (!values.learningStyle) {
+		throw new Error("Learning style is required.");
+	}
+
 	return {
 		study_hours: parseStudyHoursRange(values.studyHours),
 		attendance: parseAttendanceRange(values.attendance),

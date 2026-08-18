@@ -240,11 +240,14 @@ export function StudentFormDialog({
 											required
 										>
 											<option value="">Select study hours</option>
-											<option value="0-5">0-5 hours</option>
-											<option value="5-10">5-10 hours</option>
-											<option value="10-15">10-15 hours</option>
-											<option value="15-20">15-20 hours</option>
-											<option value="20+">20+ hours</option>
+													<option value="5">5 hours</option>
+													<option value="10">10 hours</option>
+													<option value="15">15 hours</option>
+													<option value="20">20 hours</option>
+													<option value="25">25 hours</option>
+													<option value="30">30 hours</option>
+													<option value="35">35 hours</option>
+													<option value="40">40+ hours</option>
 										</select>
 									</FormField>
 									<FormField label="Attendance Rate" htmlFor="student-attendance">
@@ -257,11 +260,11 @@ export function StudentFormDialog({
 											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}											required
 										>
 											<option value="">Select attendance</option>
-											<option value="0">0-25%</option>
-											<option value="25">25-50%</option>
-											<option value="50">50-75%</option>
-											<option value="75">75-90%</option>
-											<option value="90">90-100%</option>
+													<option value="60">60%</option>
+													<option value="70">70%</option>
+													<option value="80">80%</option>
+													<option value="90">90%</option>
+													<option value="100">100%</option>
 										</select>
 									</FormField>
 									<FormField label="Learning Resources" htmlFor="student-resources">
@@ -276,12 +279,29 @@ export function StudentFormDialog({
 										required
 									>
 										<option value="">Select resources</option>
-											<option value="0">No access to resources</option>
-											<option value="1">Limited resource access</option>
-											<option value="2">Full resource access</option>
-										</select>
-									</FormField>
-									<FormField label="Academic Motivation" htmlFor="student-motivation">
+													<option value="0">No access to resources</option>
+													<option value="1">Limited resource access</option>
+													<option value="2">Full resource access</option>
+												</select>
+											</FormField>
+											<FormField label="Stress Level" htmlFor="student-stress-level">
+												<select
+													id="student-stress-level"
+													value={values.stressLevel}
+													onChange={(event) =>
+														onValueChange("stressLevel", event.target.value)
+													}
+													className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+													disabled={isViewMode}
+													required
+												>
+													<option value="">Select stress level</option>
+													<option value="0">0 - Low</option>
+													<option value="1">1 - Moderate</option>
+													<option value="2">2 - High</option>
+												</select>
+											</FormField>
+											<FormField label="Academic Motivation" htmlFor="student-motivation">
 										<select
 											id="student-motivation"
 											value={values.motivation}
@@ -310,10 +330,11 @@ export function StudentFormDialog({
 										required
 										>
 											<option value="">Select online courses</option>
-											<option value="0">0-5 courses</option>
-											<option value="5">5-10 courses</option>
-											<option value="10">10-15 courses</option>
-											<option value="15">15-20 courses</option>
+													<option value="0">0</option>
+													<option value="5">5</option>
+													<option value="10">10</option>
+													<option value="15">15</option>
+													<option value="20">20</option>
 										</select>
 									</FormField>
 									<FormField label="Assignment Completion Rate" htmlFor="student-assignments">
@@ -328,10 +349,12 @@ export function StudentFormDialog({
 										required
 										>
 											<option value="">Select completion rate</option>
-											<option value="0">0-25%</option>
-											<option value="25">25-50%</option>
-											<option value="50">50-75%</option>
-											<option value="75">75-100%</option>
+													<option value="50">50%</option>
+													<option value="60">60%</option>
+													<option value="70">70%</option>
+													<option value="80">80%</option>
+													<option value="90">90%</option>
+													<option value="100">100%</option>
 										</select>
 									</FormField>
 								</div>
@@ -346,16 +369,24 @@ export function StudentFormDialog({
 								</div>
 								<div className="grid gap-4 sm:grid-cols-2">
 									<FormField label="Age" htmlFor="student-age">
-										<Input
-											id="student-age"
-											type="number"
-											min="18"
-											value={values.age}
-											onChange={(event) =>
-												onValueChange("age", event.target.value)
-											}												disabled={isViewMode}											required
-										/>
-									</FormField>
+												<select
+													id="student-age"
+													value={values.age}
+													onChange={(event) =>
+														onValueChange("age", event.target.value)
+													}
+													className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+													disabled={isViewMode}
+													required
+												>
+													<option value="">Select age</option>
+													{Array.from({ length: 12 }, (_, index) => 18 + index).map((age) => (
+														<option key={age} value={String(age)}>
+															{age}
+														</option>
+													))}
+												</select>
+											</FormField>
 									<FormField label="Gender" htmlFor="student-gender">
 										<select
 											id="student-gender"
@@ -367,8 +398,9 @@ export function StudentFormDialog({
 												)
 											}
 											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}										>
-											<option value="male">Male</option>
-											<option value="female">Female</option>
+											<option value="">Select gender</option>
+													<option value="male">Male</option>
+													<option value="female">Female</option>
 										</select>
 									</FormField>
 									<FormField label="Learning Style" htmlFor="student-learning-style">
@@ -382,11 +414,12 @@ export function StudentFormDialog({
 												)
 											}
 											className="flex h-9 w-full rounded-md border border-input bg-input/20 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"										disabled={isViewMode}										>
-											{learningStyleOptions.map((option) => (
-												<option key={option} value={option}>
-													{option.replace("_", " ")}
-												</option>
-											))}
+											<option value="">Select learning style</option>
+													{learningStyleOptions.map((option) => (
+														<option key={option} value={option}>
+															{option.replace("_", " ")}
+														</option>
+													))}
 										</select>
 									</FormField>
 								</div>
